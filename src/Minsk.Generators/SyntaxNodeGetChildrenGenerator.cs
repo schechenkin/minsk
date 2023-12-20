@@ -14,11 +14,11 @@ namespace Minsk.Generators
     [Generator]
     public class SyntaxNodeGetChildrenGenerator : ISourceGenerator
     {
-        public void Initialize(InitializationContext context)
+        public void Initialize(GeneratorInitializationContext context)
         {
         }
 
-        public void Execute(SourceGeneratorContext context)
+        public void Execute(GeneratorExecutionContext context)
         {
 #pragma warning disable IDE0063 // Use simple 'using' statement: we want to control when the 'using' varibales go out of scope
             SourceText sourceText;
