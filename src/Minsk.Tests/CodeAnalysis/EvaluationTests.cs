@@ -101,6 +101,11 @@ namespace Minsk.Tests.CodeAnalysis
         [InlineData("{ var a = 1 a ^= 0 return a }", 1)]
         [InlineData("{ var a = 1 var b = 2 var c = 3 a += b += c return a }", 6)]
         [InlineData("{ var a = 1 var b = 2 var c = 3 a += b += c return b }", 5)]
+        [InlineData("enum Color { Black, White } { return Color.White } ", "Color.White")]
+        [InlineData("enum Color { Black, White } { return string(Color.White) } ", "Color.White")]
+        [InlineData("enum Color { Black, White } { var color = Color.White return color }", "Color.White")]
+        [InlineData("enum Color { Black, White } { var white = Color.White var black = Color.Black return white == black }", false)]
+        [InlineData("enum Color { Black, White } { var color1 = Color.White var color2 = Color.White return color1 == color2 }", true)]
         public void Evaluator_Computes_CorrectValues(string text, object expectedValue)
         {
             AssertValue(text, expectedValue);
@@ -739,6 +744,120 @@ namespace Minsk.Tests.CodeAnalysis
             AssertDiagnostics(text, diagnostics);
         }
 
+        [Fact]
+        public void Evaluator_Enum_Assigment_Int_Reports_Cannot_Convert()
+        {
+            var text = @"
+                enum Color { Black, White }
+
+                var color = Color.Black
+                color = [1]
+            ";
+
+            var diagnostics = @"
+                Cannot convert type 'int' to 'Color'.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Fact]
+        public void Evaluator_Int_Assigment_Enum_Reports_Cannot_Convert()
+        {
+            var text = @"
+                enum Color { Black, White }
+
+                var number = 1
+                number = [Color.Black]
+            ";
+
+            var diagnostics = @"
+                Cannot convert type 'Color' to 'int'.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Fact]
+        public void Evaluator_Enum_Assigment_Another_Enum_Type_Reports_Cannot_Convert()
+        {
+            var text = @"
+                enum Color { Black, White }
+                enum Size { Small, Big }
+
+                var color = Color.Black
+                color = [Size.Small]
+            ";
+
+            var diagnostics = @"
+                Cannot convert type 'Size' to 'Color'.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Fact]
+        public void Evaluator_Access_To_Not_Existing_Enum_Member_Reports_Error()
+        {
+            var text = @"
+                enum Color { Black, White }
+
+                var color = Color.[Green]
+            ";
+
+            var diagnostics = @"
+                'Color' does not contain a definition for 'Green'.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Fact]
+        public void Evaluator_Enum_Member_Rediclaration_Reports_Error()
+        {
+            var text = @"
+                enum Color { Black, White, [Black] }
+            ";
+
+            var diagnostics = @"
+                The type 'Color' already contains a definition for 'Black'.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Fact]
+        public void Evaluator_Enum_Rediclaration_Reports_Error()
+        {
+            var text = @"
+                enum Color { Black, White }
+                enum [Color] { Green, Red }
+            ";
+
+            var diagnostics = @"
+                'Color' is already declared.
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Fact]
+        public void Evaluator_Function_Returns_Enum()
+        {
+            var text = @"
+                enum Color { Black, White }
+
+                function getColor() : Color
+                {
+                    return Color.Black
+                }
+
+                getColor()
+            ";
+
+            AssertValue(text, "Color.Black");
+        }
+
         private static void AssertValue(string text, object expectedValue)
         {
             var syntaxTree = SyntaxTree.Parse(text);
@@ -746,7 +865,7 @@ namespace Minsk.Tests.CodeAnalysis
             var variables = new Dictionary<VariableSymbol, object>();
             var result = compilation.Evaluate(variables);
 
-            Assert.False(result.Diagnostics.HasErrors());
+            Assert.False(result.Diagnostics.HasErrors(), "Error(s): " + string.Join(';', result.Diagnostics));
             Assert.Equal(expectedValue, result.Value);
         }
 

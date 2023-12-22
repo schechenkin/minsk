@@ -127,6 +127,9 @@ namespace Minsk.CodeAnalysis.Syntax
             if (Current.Kind == SyntaxKind.FunctionKeyword)
                 return ParseFunctionDeclaration();
 
+            if (Current.Kind == SyntaxKind.EnumKeyword)
+                return ParseEnumDeclaration();
+
             return ParseGlobalStatement();
         }
 
@@ -173,6 +176,49 @@ namespace Minsk.CodeAnalysis.Syntax
             var identifier = MatchToken(SyntaxKind.IdentifierToken);
             var type = ParseTypeClause();
             return new ParameterSyntax(_syntaxTree, identifier, type);
+        }
+
+        private MemberSyntax ParseEnumDeclaration()
+        {
+            var enumKeyword = MatchToken(SyntaxKind.EnumKeyword);
+            var identifier = MatchToken(SyntaxKind.IdentifierToken);
+            var openBraceToken = MatchToken(SyntaxKind.OpenBraceToken);
+            var enumMembers = ParseEnumMembersList();
+            var closeBraceToken = MatchToken(SyntaxKind.CloseBraceToken);
+
+            return new EnumDeclarationSyntax(_syntaxTree, enumKeyword, identifier, openBraceToken, enumMembers, closeBraceToken);
+        }
+
+        private SeparatedSyntaxList<EnumMemberSyntax> ParseEnumMembersList()
+        {
+            var nodesAndSeparators = ImmutableArray.CreateBuilder<SyntaxNode>();
+
+            var parseNextMember = true;
+            while (parseNextMember &&
+                   Current.Kind != SyntaxKind.CloseBraceToken &&
+                   Current.Kind != SyntaxKind.EndOfFileToken)
+            {
+                var enumMember = ParseEnumMember();
+                nodesAndSeparators.Add(enumMember);
+
+                if (Current.Kind == SyntaxKind.CommaToken)
+                {
+                    var comma = MatchToken(SyntaxKind.CommaToken);
+                    nodesAndSeparators.Add(comma);
+                }
+                else
+                {
+                    parseNextMember = false;
+                }
+            }
+
+            return new SeparatedSyntaxList<EnumMemberSyntax>(nodesAndSeparators.ToImmutable());
+        }
+
+        private EnumMemberSyntax ParseEnumMember()
+        {
+            var identifier = MatchToken(SyntaxKind.IdentifierToken);
+            return new EnumMemberSyntax(_syntaxTree, identifier);
         }
 
         private MemberSyntax ParseGlobalStatement()
@@ -419,7 +465,7 @@ namespace Minsk.CodeAnalysis.Syntax
 
                 case SyntaxKind.IdentifierToken:
                 default:
-                    return ParseNameOrCallExpression();
+                    return ParseNameOrCallOrEnumAccessExpression();
             }
         }
 
@@ -450,12 +496,23 @@ namespace Minsk.CodeAnalysis.Syntax
             return new LiteralExpressionSyntax(_syntaxTree, stringToken);
         }
 
-        private ExpressionSyntax ParseNameOrCallExpression()
+        private ExpressionSyntax ParseNameOrCallOrEnumAccessExpression()
         {
             if (Peek(0).Kind == SyntaxKind.IdentifierToken && Peek(1).Kind == SyntaxKind.OpenParenthesisToken)
                 return ParseCallExpression();
 
+            if (Peek(0).Kind == SyntaxKind.IdentifierToken && Peek(1).Kind == SyntaxKind.DotToken)
+                return ParseEnumMemberAccessExpression();
+
             return ParseNameExpression();
+        }
+        private ExpressionSyntax ParseEnumMemberAccessExpression()
+        {
+            var enumType = MatchToken(SyntaxKind.IdentifierToken);
+            var dotToken = MatchToken(SyntaxKind.DotToken);
+            var enumMember = MatchToken(SyntaxKind.IdentifierToken);
+
+            return new EnumMemberAccessExpressionSyntax(_syntaxTree, enumType, dotToken, enumMember);
         }
 
         private ExpressionSyntax ParseCallExpression()

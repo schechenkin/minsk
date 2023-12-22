@@ -14,6 +14,9 @@ namespace Minsk.CodeAnalysis.Symbols
                 case SymbolKind.Function:
                     WriteFunctionTo((FunctionSymbol)symbol, writer);
                     break;
+                case SymbolKind.Enum:
+                    WriteEnumTo((EnumSymbol)symbol, writer);
+                    break;
                 case SymbolKind.GlobalVariable:
                     WriteGlobalVariableTo((GlobalVariableSymbol)symbol, writer);
                     break;
@@ -77,6 +80,30 @@ namespace Minsk.CodeAnalysis.Symbols
             writer.WritePunctuation(SyntaxKind.ColonToken);
             writer.WriteSpace();
             symbol.Type.WriteTo(writer);
+        }
+
+        private static void WriteEnumTo(EnumSymbol symbol, TextWriter writer)
+        {
+            writer.WriteKeyword(SyntaxKind.EnumKeyword);
+            writer.WriteSpace();
+            writer.WriteIdentifier(symbol.Name);
+            writer.WriteSpace();
+            writer.WritePunctuation(SyntaxKind.OpenBraceToken);
+            writer.WriteSpace();
+
+            for (int i = 0; i < symbol.Members.Length; i++)
+            {
+                if (i > 0)
+                {
+                    writer.WritePunctuation(SyntaxKind.CommaToken);
+                    writer.WriteSpace();
+                }
+
+                writer.WriteIdentifier(symbol.Members[i].Name);
+            }
+
+            writer.WriteSpace();
+            writer.WritePunctuation(SyntaxKind.CloseBraceToken);
         }
 
         private static void WriteParameterTo(ParameterSymbol symbol, TextWriter writer)

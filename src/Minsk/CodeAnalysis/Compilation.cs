@@ -38,6 +38,7 @@ namespace Minsk.CodeAnalysis
         public FunctionSymbol? MainFunction => GlobalScope.MainFunction;
         public ImmutableArray<FunctionSymbol> Functions => GlobalScope.Functions;
         public ImmutableArray<VariableSymbol> Variables => GlobalScope.Variables;
+        public ImmutableArray<EnumSymbol> Enums => GlobalScope.Enums;
 
         internal BoundGlobalScope GlobalScope
         {
@@ -65,6 +66,10 @@ namespace Minsk.CodeAnalysis
                 foreach (var function in submission.Functions)
                     if (seenSymbolNames.Add(function.Name))
                         yield return function;
+
+                foreach (var enumType in submission.Enums)
+                    if (seenSymbolNames.Add(enumType.Name))
+                        yield return enumType;
 
                 foreach (var variable in submission.Variables)
                     if (seenSymbolNames.Add(variable.Name))

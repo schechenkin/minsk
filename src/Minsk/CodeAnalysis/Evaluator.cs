@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Minsk.CodeAnalysis.Binding;
 using Minsk.CodeAnalysis.Symbols;
 
@@ -134,6 +135,8 @@ namespace Minsk.CodeAnalysis
                     return EvaluateBinaryExpression((BoundBinaryExpression)node);
                 case BoundNodeKind.CallExpression:
                     return EvaluateCallExpression((BoundCallExpression)node);
+                case BoundNodeKind.EnumMemberAccessExpression:
+                    return EvaluateEnumMemberAccessExpression((BoundEnumMemberAccessExpression)node);
                 case BoundNodeKind.ConversionExpression:
                     return EvaluateConversionExpression((BoundConversionExpression)node);
                 default:
@@ -287,6 +290,13 @@ namespace Minsk.CodeAnalysis
 
                 return result;
             }
+        }
+
+        private object? EvaluateEnumMemberAccessExpression(BoundEnumMemberAccessExpression node)
+        {
+            var enumSymbol = node.EnumSymbol;
+            var enumMember = enumSymbol.Members.First(m => m.Name == node.EnumMember.Name);
+            return $"{enumSymbol.Name}.{enumMember.Name}";
         }
 
         private object? EvaluateConversionExpression(BoundConversionExpression node)

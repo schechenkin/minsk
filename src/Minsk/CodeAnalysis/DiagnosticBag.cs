@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Linq;
 using Minsk.CodeAnalysis.Symbols;
 using Minsk.CodeAnalysis.Syntax;
 using Minsk.CodeAnalysis.Text;
@@ -82,6 +83,12 @@ namespace Minsk.CodeAnalysis
             ReportError(location, message);
         }
 
+        public void ReportEnumMemberAlreadyDeclared(TextLocation location, string enumTypeName, string memberName)
+        {
+            var message = $"The type '{enumTypeName}' already contains a definition for '{memberName}'.";
+            ReportError(location, message);
+        }
+
         public void ReportUndefinedVariable(TextLocation location, string name)
         {
             var message = $"Variable '{name}' doesn't exist.";
@@ -130,9 +137,27 @@ namespace Minsk.CodeAnalysis
             ReportError(location, message);
         }
 
+        public void ReportUndefinedEnum(TextLocation location, string name)
+        {
+            var message = $"Enum '{name}' doesn't exist.";
+            ReportError(location, message);
+        }
+
+        public void ReportUndefinedEnumMember(TextLocation location, string enumTypeName, string enumMemberName)
+        {
+            var message = $"'{enumTypeName}' does not contain a definition for '{enumMemberName}'.";
+            ReportError(location, message);
+        }
+
         public void ReportNotAFunction(TextLocation location, string name)
         {
             var message = $"'{name}' is not a function.";
+            ReportError(location, message);
+        }
+
+        public void ReportNotAnEnum(TextLocation location, string name)
+        {
+            var message = $"'{name}' is not a enum.";
             ReportError(location, message);
         }
 

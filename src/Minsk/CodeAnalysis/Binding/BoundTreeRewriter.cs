@@ -180,6 +180,8 @@ namespace Minsk.CodeAnalysis.Binding
                     return RewriteBinaryExpression((BoundBinaryExpression)node);
                 case BoundNodeKind.CallExpression:
                     return RewriteCallExpression((BoundCallExpression)node);
+                case BoundNodeKind.EnumMemberAccessExpression:
+                    return RewriteEnumMemberAccessExpression((BoundEnumMemberAccessExpression)node);
                 case BoundNodeKind.ConversionExpression:
                     return RewriteConversionExpression((BoundConversionExpression)node);
                 default:
@@ -266,6 +268,11 @@ namespace Minsk.CodeAnalysis.Binding
                 return node;
 
             return new BoundCallExpression(node.Syntax, node.Function, builder.MoveToImmutable());
+        }
+
+        protected virtual BoundExpression RewriteEnumMemberAccessExpression(BoundEnumMemberAccessExpression node)
+        {
+            return node;
         }
 
         protected virtual BoundExpression RewriteConversionExpression(BoundConversionExpression node)

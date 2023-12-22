@@ -32,12 +32,15 @@ namespace Minsk.CodeAnalysis.Emit
         private readonly MethodReference _randomCtorReference;
         private readonly MethodReference _randomNextReference;
         private readonly AssemblyDefinition _assemblyDefinition;
-        private readonly Dictionary<FunctionSymbol, MethodDefinition> _methods = new Dictionary<FunctionSymbol, MethodDefinition>();
-        private readonly Dictionary<VariableSymbol, VariableDefinition> _locals = new Dictionary<VariableSymbol, VariableDefinition>();
+        private readonly Dictionary<FunctionSymbol, MethodDefinition> _methods = new ();
+        private readonly Dictionary<VariableSymbol, VariableDefinition> _locals = new ();
+        private readonly Dictionary<EnumSymbol, TypeDefinition> _enums = new ();
         private readonly Dictionary<BoundLabel, int> _labels = new Dictionary<BoundLabel, int>();
         private readonly List<(int InstructionIndex, BoundLabel Target)> _fixups = new List<(int InstructionIndex, BoundLabel Target)>();
 
         private TypeDefinition _typeDefinition;
+        private TypeReference _enumTypeReference;
+
         private FieldDefinition? _randomFieldDefinition;
 
         // TOOD: This constructor does too much. Resolution should be factored out.
@@ -159,6 +162,7 @@ namespace Minsk.CodeAnalysis.Emit
             _convertToInt32Reference = ResolveMethod("System.Convert", "ToInt32", new [] { "System.Object" });
             _convertToStringReference = ResolveMethod("System.Convert", "ToString", new [] { "System.Object" });
             _randomReference = ResolveType(null, "System.Random");
+            _enumTypeReference = ResolveType(null, "System.Enum");
             _randomCtorReference = ResolveMethod("System.Random", ".ctor", Array.Empty<string>());
             _randomNextReference = ResolveMethod("System.Random", "Next", new [] { "System.Int32" });
 
@@ -188,6 +192,9 @@ namespace Minsk.CodeAnalysis.Emit
             if (_diagnostics.Any())
                 return _diagnostics.ToImmutableArray();
 
+            foreach (var enumSymbol in program.Enums)
+                EmitEnumDeclaration(enumSymbol);
+
             foreach (var functionWithBody in program.Functions)
                 EmitFunctionDeclaration(functionWithBody.Key);
 
@@ -200,6 +207,26 @@ namespace Minsk.CodeAnalysis.Emit
             _assemblyDefinition.Write(outputPath);
 
             return _diagnostics.ToImmutableArray();
+        }
+
+        private void EmitEnumDeclaration(EnumSymbol enumSymbol)
+        {
+            var enumTypeDefinition = new TypeDefinition("", enumSymbol.Name, TypeAttributes.Public | TypeAttributes.Sealed, _enumTypeReference);
+
+            enumTypeDefinition.Fields.Add(new FieldDefinition("value__", FieldAttributes.Public | FieldAttributes.SpecialName | FieldAttributes.RTSpecialName, _knownTypes[TypeSymbol.Int]));
+            foreach (var member in enumSymbol.Members)
+            {
+                enumTypeDefinition.Fields.Add(
+                    new FieldDefinition(member.Name, FieldAttributes.Public | FieldAttributes.Static | FieldAttributes.Literal, enumTypeDefinition)
+                    {
+                        Constant = member.Ordinal
+                    }
+                );
+            }
+
+            _assemblyDefinition.MainModule.Types.Add(enumTypeDefinition);
+            _knownTypes[TypeSymbol.Enum(enumSymbol.Name)] = enumTypeDefinition;
+            _enums.Add(enumSymbol, enumTypeDefinition);
         }
 
         private void EmitFunctionDeclaration(FunctionSymbol function)
@@ -353,6 +380,9 @@ namespace Minsk.CodeAnalysis.Emit
                 case BoundNodeKind.ConversionExpression:
                     EmitConversionExpression(ilProcessor, (BoundConversionExpression)node);
                     break;
+                case BoundNodeKind.EnumMemberAccessExpression:
+                    EmitEnumMemberAccessExpression(ilProcessor, (BoundEnumMemberAccessExpression)node);
+                    break;
                 default:
                     throw new Exception($"Unexpected node kind {node.Kind}");
             }
@@ -403,6 +433,11 @@ namespace Minsk.CodeAnalysis.Emit
             EmitExpression(ilProcessor, node.Expression);
             ilProcessor.Emit(OpCodes.Dup);
             ilProcessor.Emit(OpCodes.Stloc, variableDefinition);
+        }
+
+        private void EmitEnumMemberAccessExpression(ILProcessor ilProcessor, BoundEnumMemberAccessExpression node)
+        {
+            ilProcessor.Emit(OpCodes.Ldc_I4, node.EnumMember.Ordinal);
         }
 
         private void EmitUnaryExpression(ILProcessor ilProcessor, BoundUnaryExpression node)
@@ -707,7 +742,9 @@ namespace Minsk.CodeAnalysis.Emit
         {
             EmitExpression(ilProcessor, node.Expression);
             var needsBoxing = node.Expression.Type == TypeSymbol.Bool ||
-                              node.Expression.Type == TypeSymbol.Int;
+                              node.Expression.Type == TypeSymbol.Int ||
+                              node.Expression.Type.IsEnum();
+
             if (needsBoxing)
                 ilProcessor.Emit(OpCodes.Box, _knownTypes[node.Expression.Type]);
 
