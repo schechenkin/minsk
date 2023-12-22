@@ -71,6 +71,12 @@ namespace Minsk.CodeAnalysis.Binding
                     return op;
             }
 
+            if (syntaxKind == SyntaxKind.EqualsEqualsToken && leftType == rightType)
+                return new BoundBinaryOperator(SyntaxKind.EqualsEqualsToken, BoundBinaryOperatorKind.Equals, leftType, TypeSymbol.Bool);
+
+            if (syntaxKind == SyntaxKind.BangEqualsToken && leftType == rightType)
+                return new BoundBinaryOperator(SyntaxKind.BangEqualsToken, BoundBinaryOperatorKind.NotEquals, leftType, TypeSymbol.Bool);
+
             return null;
         }
     }

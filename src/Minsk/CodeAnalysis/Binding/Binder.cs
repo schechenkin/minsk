@@ -7,6 +7,7 @@ using Minsk.CodeAnalysis.Lowering;
 using Minsk.CodeAnalysis.Symbols;
 using Minsk.CodeAnalysis.Syntax;
 using Minsk.CodeAnalysis.Text;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Minsk.CodeAnalysis.Binding
 {
@@ -40,7 +41,15 @@ namespace Minsk.CodeAnalysis.Binding
 
             binder.Diagnostics.AddRange(syntaxTrees.SelectMany(st => st.Diagnostics));
             if (binder.Diagnostics.Any())
-                return new BoundGlobalScope(previous, binder.Diagnostics.ToImmutableArray(), null, null, ImmutableArray<FunctionSymbol>.Empty, ImmutableArray<VariableSymbol>.Empty, ImmutableArray<BoundStatement>.Empty);
+                return new BoundGlobalScope(previous, binder.Diagnostics.ToImmutableArray(), null, null, ImmutableArray<FunctionSymbol>.Empty, ImmutableArray<VariableSymbol>.Empty, ImmutableArray<EnumSymbol>.Empty, ImmutableArray<BoundStatement>.Empty);
+
+
+            var enumDeclarations = syntaxTrees.SelectMany(st => st.Root.Members)
+                                                  .OfType<EnumDeclarationSyntax>();
+
+            foreach (var enumDeclaration in enumDeclarations)
+                binder.BindEnumDeclaration(enumDeclaration);
+
 
             var functionDeclarations = syntaxTrees.SelectMany(st => st.Root.Members)
                                                   .OfType<FunctionDeclarationSyntax>();
@@ -119,11 +128,12 @@ namespace Minsk.CodeAnalysis.Binding
 
             var diagnostics = binder.Diagnostics.ToImmutableArray();
             var variables = binder._scope.GetDeclaredVariables();
+            var enums = binder._scope.GetDeclaredEnums();
 
             if (previous != null)
                 diagnostics = diagnostics.InsertRange(0, previous.Diagnostics);
 
-            return new BoundGlobalScope(previous, diagnostics, mainFunction, scriptFunction, functions, variables, statements.ToImmutable());
+            return new BoundGlobalScope(previous, diagnostics, mainFunction, scriptFunction, functions, variables, enums, statements.ToImmutable());
         }
 
         public static BoundProgram BindProgram(bool isScript, BoundProgram? previous, BoundGlobalScope globalScope)
@@ -131,7 +141,7 @@ namespace Minsk.CodeAnalysis.Binding
             var parentScope = CreateParentScope(globalScope);
 
             if (globalScope.Diagnostics.Any())
-                return new BoundProgram(previous, globalScope.Diagnostics, null, null, ImmutableDictionary<FunctionSymbol, BoundBlockStatement>.Empty);
+                return new BoundProgram(previous, globalScope.Diagnostics, ImmutableArray<EnumSymbol>.Empty, null, null, ImmutableDictionary<FunctionSymbol, BoundBlockStatement>.Empty);
 
             var functionBodies = ImmutableDictionary.CreateBuilder<FunctionSymbol, BoundBlockStatement>();
             var diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
@@ -180,6 +190,7 @@ namespace Minsk.CodeAnalysis.Binding
 
             return new BoundProgram(previous,
                                     diagnostics.ToImmutable(),
+                                    globalScope.Enums.ToImmutableArray(),
                                     globalScope.MainFunction,
                                     globalScope.ScriptFunction,
                                     functionBodies.ToImmutable());
@@ -216,6 +227,35 @@ namespace Minsk.CodeAnalysis.Binding
             }
         }
 
+        private void BindEnumDeclaration(EnumDeclarationSyntax syntax)
+        {
+            var members = ImmutableArray.CreateBuilder<EnumMemberSymbol>();
+
+            var seenEnumMemberNames = new HashSet<string>();
+
+            foreach (var memberSyntax in syntax.Members)
+            {
+                string memberName = memberSyntax.Identifier.Text;
+
+                if(!seenEnumMemberNames.Add(memberName))
+                {
+                    _diagnostics.ReportEnumMemberAlreadyDeclared(memberSyntax.Location, syntax.Identifier.Text, memberName);
+                }
+                else
+                {
+                    var member = new EnumMemberSymbol(memberName, members.Count);
+                    members.Add(member);
+                }
+            }
+
+            var enumSymbol = new EnumSymbol(syntax.Identifier.Text, members.ToImmutable());
+
+            if (syntax.Identifier.Text != null && !_scope.TryDeclareEnum(enumSymbol))
+            {
+                _diagnostics.ReportSymbolAlreadyDeclared(syntax.Identifier.Location, enumSymbol.Name);
+            }
+        }
+
         private static BoundScope CreateParentScope(BoundGlobalScope? previous)
         {
             var stack = new Stack<BoundGlobalScope>();
@@ -237,6 +277,9 @@ namespace Minsk.CodeAnalysis.Binding
 
                 foreach (var v in previous.Variables)
                     scope.TryDeclareVariable(v);
+
+                foreach (var e in previous.Enums)
+                    scope.TryDeclareEnum(e);
 
                 parent = scope;
             }
@@ -526,6 +569,8 @@ namespace Minsk.CodeAnalysis.Binding
                     return BindBinaryExpression((BinaryExpressionSyntax)syntax);
                 case SyntaxKind.CallExpression:
                     return BindCallExpression((CallExpressionSyntax)syntax);
+                case SyntaxKind.EnumMemberAccessExpression:
+                    return BindEnumMemberAccessExpression((EnumMemberAccessExpressionSyntax)syntax);
                 default:
                     throw new Exception($"Unexpected syntax {syntax.Kind}");
             }
@@ -689,6 +734,34 @@ namespace Minsk.CodeAnalysis.Binding
             return new BoundCallExpression(syntax, function, boundArguments.ToImmutable());
         }
 
+        private BoundExpression BindEnumMemberAccessExpression(EnumMemberAccessExpressionSyntax syntax)
+        {
+            var symbol = _scope.TryLookupSymbol(syntax.EnumTypeIdentifier.Text);
+            if (symbol == null)
+            {
+                _diagnostics.ReportUndefinedEnum(syntax.EnumTypeIdentifier.Location, syntax.EnumTypeIdentifier.Text);
+                return new BoundErrorExpression(syntax);
+            }
+
+            var enumSymbol = symbol as EnumSymbol;
+            if (enumSymbol == null)
+            {
+                _diagnostics.ReportNotAnEnum(syntax.EnumTypeIdentifier.Location, syntax.EnumTypeIdentifier.Text);
+                return new BoundErrorExpression(syntax);
+            }
+
+            var memberName = syntax.EnumMemberIdentifier.Text;
+            var enumMemberSymbol = enumSymbol.Members.FirstOrDefault(m => m.Name == memberName);
+
+            if (enumMemberSymbol is null)
+            {
+                _diagnostics.ReportUndefinedEnumMember(syntax.EnumMemberIdentifier.Location, syntax.EnumTypeIdentifier.Text, syntax.EnumMemberIdentifier.Text);
+                return new BoundErrorExpression(syntax);
+            }
+
+            return new BoundEnumMemberAccessExpression(syntax, enumSymbol, enumMemberSymbol);
+        }
+
         private BoundExpression BindConversion(ExpressionSyntax syntax, TypeSymbol type, bool allowExplicit = false)
         {
             var expression = BindExpression(syntax);
@@ -763,7 +836,11 @@ namespace Minsk.CodeAnalysis.Binding
                 case "string":
                     return TypeSymbol.String;
                 default:
-                    return null;
+                    var enumSymbol = _scope.TryLookupSymbol(name) as EnumSymbol;
+                    if (enumSymbol is null)
+                        return null;
+                    else
+                        return TypeSymbol.Enum(enumSymbol.Name);
             }
         }
     }

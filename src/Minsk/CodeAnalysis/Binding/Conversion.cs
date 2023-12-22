@@ -36,7 +36,7 @@ namespace Minsk.CodeAnalysis.Binding
                 return Conversion.Explicit;
             }
 
-            if (from == TypeSymbol.Bool || from == TypeSymbol.Int)
+            if (from == TypeSymbol.Bool || from == TypeSymbol.Int || from.IsEnum())
             {
                 if (to == TypeSymbol.String)
                     return Conversion.Explicit;

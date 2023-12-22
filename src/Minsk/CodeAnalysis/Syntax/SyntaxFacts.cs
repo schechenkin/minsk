@@ -76,6 +76,8 @@ namespace Minsk.CodeAnalysis.Syntax
                     return SyntaxKind.ForKeyword;
                 case "function":
                     return SyntaxKind.FunctionKeyword;
+                case "enum":
+                    return SyntaxKind.EnumKeyword;
                 case "if":
                     return SyntaxKind.IfKeyword;
                 case "let":
@@ -183,6 +185,8 @@ namespace Minsk.CodeAnalysis.Syntax
                     return ":";
                 case SyntaxKind.CommaToken:
                     return ",";
+                case SyntaxKind.DotToken:
+                    return ".";
                 case SyntaxKind.BreakKeyword:
                     return "break";
                 case SyntaxKind.ContinueKeyword:
@@ -195,6 +199,8 @@ namespace Minsk.CodeAnalysis.Syntax
                     return "for";
                 case SyntaxKind.FunctionKeyword:
                     return "function";
+                case SyntaxKind.EnumKeyword:
+                    return "enum";
                 case SyntaxKind.IfKeyword:
                     return "if";
                 case SyntaxKind.LetKeyword:

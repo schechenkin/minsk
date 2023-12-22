@@ -46,6 +46,7 @@ namespace Minsk.CodeAnalysis.Syntax
         CloseBraceToken,
         ColonToken,
         CommaToken,
+        DotToken,
         IdentifierToken,
 
         // Keywords
@@ -55,6 +56,7 @@ namespace Minsk.CodeAnalysis.Syntax
         FalseKeyword,
         ForKeyword,
         FunctionKeyword,
+        EnumKeyword,
         IfKeyword,
         LetKeyword,
         ReturnKeyword,
@@ -67,8 +69,10 @@ namespace Minsk.CodeAnalysis.Syntax
         // Nodes
         CompilationUnit,
         FunctionDeclaration,
+        EnumDeclaration,
         GlobalStatement,
         Parameter,
+        EnumMember,
         TypeClause,
         ElseClause,
 
@@ -93,5 +97,6 @@ namespace Minsk.CodeAnalysis.Syntax
         ParenthesizedExpression,
         AssignmentExpression,
         CallExpression,
+        EnumMemberAccessExpression
     }
 }

@@ -11,6 +11,7 @@ namespace Minsk.CodeAnalysis.Binding
                                 FunctionSymbol? scriptFunction,
                                 ImmutableArray<FunctionSymbol> functions,
                                 ImmutableArray<VariableSymbol> variables,
+                                ImmutableArray<EnumSymbol> enums,
                                 ImmutableArray<BoundStatement> statements)
         {
             Previous = previous;
@@ -19,6 +20,7 @@ namespace Minsk.CodeAnalysis.Binding
             ScriptFunction = scriptFunction;
             Functions = functions;
             Variables = variables;
+            Enums = enums;
             Statements = statements;
         }
 
@@ -28,6 +30,7 @@ namespace Minsk.CodeAnalysis.Binding
         public FunctionSymbol? ScriptFunction { get; }
         public ImmutableArray<FunctionSymbol> Functions { get; }
         public ImmutableArray<VariableSymbol> Variables { get; }
+        public ImmutableArray<EnumSymbol> Enums { get; }
         public ImmutableArray<BoundStatement> Statements { get; }
     }
 }

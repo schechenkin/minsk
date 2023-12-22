@@ -22,6 +22,9 @@ namespace Minsk.CodeAnalysis.Binding
         public bool TryDeclareFunction(FunctionSymbol function)
             => TryDeclareSymbol(function);
 
+        public bool TryDeclareEnum(EnumSymbol enumSymbol)
+            => TryDeclareSymbol(enumSymbol);
+
         private bool TryDeclareSymbol<TSymbol>(TSymbol symbol)
             where TSymbol : Symbol
         {
@@ -47,6 +50,9 @@ namespace Minsk.CodeAnalysis.Binding
 
         public ImmutableArray<FunctionSymbol> GetDeclaredFunctions()
             => GetDeclaredSymbols<FunctionSymbol>();
+
+        public ImmutableArray<EnumSymbol> GetDeclaredEnums()
+           => GetDeclaredSymbols<EnumSymbol>();
 
         private ImmutableArray<TSymbol> GetDeclaredSymbols<TSymbol>()
             where TSymbol : Symbol
