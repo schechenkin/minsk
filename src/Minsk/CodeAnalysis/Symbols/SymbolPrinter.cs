@@ -116,7 +116,10 @@ namespace Minsk.CodeAnalysis.Symbols
 
         private static void WriteTypeTo(TypeSymbol symbol, TextWriter writer)
         {
-            writer.WriteIdentifier(symbol.Name);
+            if(!symbol.IsArray())
+                writer.WriteIdentifier(symbol.Name);
+            else
+                writer.WriteIdentifier($"{symbol.Name}[]");
         }
     }
 }

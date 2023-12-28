@@ -292,8 +292,17 @@ namespace Minsk.CodeAnalysis.Syntax
             var identifier = MatchToken(SyntaxKind.IdentifierToken);
             var typeClause = ParseOptionalTypeClause();
             var equals = MatchToken(SyntaxKind.EqualsToken);
-            var initializer = ParseExpression();
-            return new VariableDeclarationSyntax(_syntaxTree, keyword, identifier, typeClause, equals, initializer);
+
+            if (typeClause is null || !typeClause.IsArray)
+            {
+                var initializer = ParseExpression();
+                return new VariableDeclarationSyntax(_syntaxTree, keyword, identifier, typeClause, equals, initializer);
+            }
+            else
+            {
+                var arrayInitializer = ParseArrayCreationExpression(typeClause);
+                return new VariableDeclarationSyntax(_syntaxTree, keyword, identifier, typeClause, equals, arrayInitializer);
+            }
         }
 
         private TypeClauseSyntax? ParseOptionalTypeClause()
@@ -308,7 +317,17 @@ namespace Minsk.CodeAnalysis.Syntax
         {
             var colonToken = MatchToken(SyntaxKind.ColonToken);
             var identifier = MatchToken(SyntaxKind.IdentifierToken);
-            return new TypeClauseSyntax(_syntaxTree, colonToken, identifier);
+
+            if (Peek(0).Kind == SyntaxKind.OpenBracketToken)
+            {
+                var openBracketToken = MatchToken(SyntaxKind.OpenBracketToken);
+                var closeBracketToken = MatchToken(SyntaxKind.CloseBracketToken);
+                return new TypeClauseSyntax(_syntaxTree, colonToken, identifier, openBracketToken, closeBracketToken);
+            }
+            else
+            {
+                return new TypeClauseSyntax(_syntaxTree, colonToken, identifier);
+            }
         }
 
         private StatementSyntax ParseIfStatement()
@@ -395,7 +414,8 @@ namespace Minsk.CodeAnalysis.Syntax
 
         private ExpressionSyntax ParseAssignmentExpression()
         {
-            if (Peek(0).Kind == SyntaxKind.IdentifierToken)
+
+            /*if (Peek(0).Kind == SyntaxKind.IdentifierToken)
             {
                 switch (Peek(1).Kind)
                 {
@@ -410,11 +430,102 @@ namespace Minsk.CodeAnalysis.Syntax
                         var identifierToken = NextToken();
                         var operatorToken = NextToken();
                         var right = ParseAssignmentExpression();
-                        return new AssignmentExpressionSyntax(_syntaxTree, identifierToken, operatorToken, right);
+                        return new AssignmentExpressionSyntax(_syntaxTree, new NameExpressionSyntax(_syntaxTree, identifierToken), operatorToken, right);
                 }
-
             }
+
+            return ParseBinaryExpression();*/
+
+
+            if (Peek(0).Kind == SyntaxKind.IdentifierToken)
+            {
+                if(IsArrayElementAssigment())
+                {
+                    var identifierToken = NextToken();
+                    var openBracketToken = NextToken();
+                    var elementIndexExpression = ParseExpression();
+                    var closeBracketToken = NextToken();
+
+                    var arrayElementAccessExpressionSyntax = new ArrayElementAccessExpressionSyntax(_syntaxTree, identifierToken, openBracketToken, elementIndexExpression, closeBracketToken);
+
+                    switch (Peek(0).Kind)
+                    {
+                        case SyntaxKind.PlusEqualsToken:
+                        case SyntaxKind.MinusEqualsToken:
+                        case SyntaxKind.StarEqualsToken:
+                        case SyntaxKind.SlashEqualsToken:
+                        case SyntaxKind.AmpersandEqualsToken:
+                        case SyntaxKind.PipeEqualsToken:
+                        case SyntaxKind.HatEqualsToken:
+                        case SyntaxKind.EqualsToken:
+                            var operatorToken = NextToken();
+                            var right = ParseAssignmentExpression();
+                            return new AssignmentExpressionSyntax(_syntaxTree, arrayElementAccessExpressionSyntax, operatorToken, right);
+                    }
+
+                }
+                else
+                {
+                    switch (Peek(1).Kind)
+                    {
+                        case SyntaxKind.PlusEqualsToken:
+                        case SyntaxKind.MinusEqualsToken:
+                        case SyntaxKind.StarEqualsToken:
+                        case SyntaxKind.SlashEqualsToken:
+                        case SyntaxKind.AmpersandEqualsToken:
+                        case SyntaxKind.PipeEqualsToken:
+                        case SyntaxKind.HatEqualsToken:
+                        case SyntaxKind.EqualsToken:
+                            var identifierToken = NextToken();
+                            var operatorToken = NextToken();
+                            var right = ParseAssignmentExpression();
+                            return new AssignmentExpressionSyntax(_syntaxTree, new NameExpressionSyntax(_syntaxTree, identifierToken), operatorToken, right);
+                    }
+                }
+            }
+
             return ParseBinaryExpression();
+        }
+
+        private bool IsArrayElementAssigment()
+        {
+            if(Current.Kind != SyntaxKind.IdentifierToken)
+                return false;
+
+            if (Peek(1).Kind != SyntaxKind.OpenBracketToken)
+                return false;
+
+            int index = 1;
+            while (Peek(index).Kind != SyntaxKind.CloseBracketToken && Peek(index).Kind != SyntaxKind.EndOfFileToken)
+                index++;
+
+            if (Peek(index).Kind == SyntaxKind.EndOfFileToken)
+                return false;
+
+            switch (Peek(index + 1).Kind)
+            {
+                case SyntaxKind.PlusEqualsToken:
+                case SyntaxKind.MinusEqualsToken:
+                case SyntaxKind.StarEqualsToken:
+                case SyntaxKind.SlashEqualsToken:
+                case SyntaxKind.AmpersandEqualsToken:
+                case SyntaxKind.PipeEqualsToken:
+                case SyntaxKind.HatEqualsToken:
+                case SyntaxKind.EqualsToken:
+                    return true;
+            }
+
+            return false;
+        }
+
+        private ExpressionSyntax ParseArrayCreationExpression(TypeClauseSyntax typeClause)
+        {
+            var arrayKeywordToken = NextToken();
+            var openParenthesisToken = NextToken();
+            var sizeExpression = ParseNumberLiteral();
+            var closeParenthesisToken = NextToken();
+
+            return new ArrayCreationExpressionSyntax(_syntaxTree, typeClause, arrayKeywordToken, openParenthesisToken, sizeExpression, closeParenthesisToken);
         }
 
         private ExpressionSyntax ParseBinaryExpression(int parentPrecedence = 0)
@@ -465,7 +576,7 @@ namespace Minsk.CodeAnalysis.Syntax
 
                 case SyntaxKind.IdentifierToken:
                 default:
-                    return ParseNameOrCallOrEnumAccessExpression();
+                    return ParseNameOrCallOrEnumOrArrayElementAccessExpression();
             }
         }
 
@@ -496,7 +607,7 @@ namespace Minsk.CodeAnalysis.Syntax
             return new LiteralExpressionSyntax(_syntaxTree, stringToken);
         }
 
-        private ExpressionSyntax ParseNameOrCallOrEnumAccessExpression()
+        private ExpressionSyntax ParseNameOrCallOrEnumOrArrayElementAccessExpression()
         {
             if (Peek(0).Kind == SyntaxKind.IdentifierToken && Peek(1).Kind == SyntaxKind.OpenParenthesisToken)
                 return ParseCallExpression();
@@ -504,8 +615,13 @@ namespace Minsk.CodeAnalysis.Syntax
             if (Peek(0).Kind == SyntaxKind.IdentifierToken && Peek(1).Kind == SyntaxKind.DotToken)
                 return ParseEnumMemberAccessExpression();
 
+            if (Peek(0).Kind == SyntaxKind.IdentifierToken && Peek(1).Kind == SyntaxKind.OpenBracketToken)
+                return ParseArrayElementAccessExpression();
+
             return ParseNameExpression();
         }
+
+
         private ExpressionSyntax ParseEnumMemberAccessExpression()
         {
             var enumType = MatchToken(SyntaxKind.IdentifierToken);
@@ -513,6 +629,16 @@ namespace Minsk.CodeAnalysis.Syntax
             var enumMember = MatchToken(SyntaxKind.IdentifierToken);
 
             return new EnumMemberAccessExpressionSyntax(_syntaxTree, enumType, dotToken, enumMember);
+        }
+
+        private ExpressionSyntax ParseArrayElementAccessExpression()
+        {
+            var identifier = MatchToken(SyntaxKind.IdentifierToken);
+            var openBracketToken = MatchToken(SyntaxKind.OpenBracketToken);
+            var elementIndexExpression = ParseExpression();
+            var closeBracketToken = MatchToken(SyntaxKind.CloseBracketToken);
+
+            return new ArrayElementAccessExpressionSyntax(_syntaxTree, identifier, openBracketToken, elementIndexExpression, closeBracketToken);
         }
 
         private ExpressionSyntax ParseCallExpression()

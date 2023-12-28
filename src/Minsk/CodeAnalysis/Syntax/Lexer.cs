@@ -293,6 +293,14 @@ namespace Minsk.CodeAnalysis.Syntax
                     _kind = SyntaxKind.CloseBraceToken;
                     _position++;
                     break;
+                case '[':
+                    _kind = SyntaxKind.OpenBracketToken;
+                    _position++;
+                    break;
+                case ']':
+                    _kind = SyntaxKind.CloseBracketToken;
+                    _position++;
+                    break;
                 case ':':
                     _kind = SyntaxKind.ColonToken;
                     _position++;
