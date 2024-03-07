@@ -4,6 +4,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Minsk.CodeAnalysis.Binding.CFG;
+using Minsk.CodeAnalysis.Binding.SSA;
 using Minsk.CodeAnalysis.Lowering;
 using Minsk.CodeAnalysis.Symbols;
 using Minsk.CodeAnalysis.Syntax;
@@ -156,7 +158,8 @@ namespace Minsk.CodeAnalysis.Binding
                 if (function.Type != TypeSymbol.Void && !ControlFlowGraph.AllPathsReturn(loweredBody))
                     binder._diagnostics.ReportAllPathsMustReturn(function.Declaration.Identifier.Location);
 
-                functionBodies.Add(function, loweredBody);
+                functionBodies.Add(function, SSARewriter.Transform(function, loweredBody));
+                //functionBodies.Add(function, loweredBody);
 
                 diagnostics.AddRange(binder.Diagnostics);
             }
@@ -168,7 +171,8 @@ namespace Minsk.CodeAnalysis.Binding
             if (globalScope.MainFunction != null && globalScope.Statements.Any())
             {
                 var body = Lowerer.Lower(globalScope.MainFunction, new BoundBlockStatement(compilationUnit!, globalScope.Statements));
-                functionBodies.Add(globalScope.MainFunction, body);
+                var ssaForm = SSARewriter.Transform(globalScope.MainFunction, body);
+                functionBodies.Add(globalScope.MainFunction, ssaForm);
             }
             else if (globalScope.ScriptFunction != null)
             {
@@ -186,7 +190,8 @@ namespace Minsk.CodeAnalysis.Binding
                 }
 
                 var body = Lowerer.Lower(globalScope.ScriptFunction, new BoundBlockStatement(compilationUnit!, statements));
-                functionBodies.Add(globalScope.ScriptFunction, body);
+                var ssaForm = SSARewriter.Transform(globalScope.ScriptFunction, body);
+                functionBodies.Add(globalScope.ScriptFunction, ssaForm);
             }
 
             return new BoundProgram(previous,
@@ -820,7 +825,6 @@ namespace Minsk.CodeAnalysis.Binding
         private BoundExpression BindArrayCreationExpression(ArrayCreationExpressionSyntax syntax)
         {
             //TODO add checks
-
             var arrayType = LookupType(syntax.TypeClause.Identifier.Text);
             return new BoundArrayCreationExpression(syntax, arrayType, BindExpression(syntax.SizeExpression));
         }

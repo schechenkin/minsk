@@ -60,6 +60,20 @@ namespace Minsk.IO
             writer.ResetColor();
         }
 
+        public static void WriteEnum(this TextWriter writer, string text)
+        {
+            writer.SetForeground(ConsoleColor.Yellow);
+            writer.Write(text);
+            writer.ResetColor();
+        }
+
+        public static void WriteEnumMember(this TextWriter writer, string text)
+        {
+            writer.SetForeground(ConsoleColor.Yellow);
+            writer.Write(text);
+            writer.ResetColor();
+        }
+
         public static void WriteNumber(this TextWriter writer, string text)
         {
             writer.SetForeground(ConsoleColor.Cyan);
@@ -85,6 +99,11 @@ namespace Minsk.IO
             Debug.Assert(text != null);
 
             writer.WritePunctuation(text);
+        }
+
+        public static void WritePhi(this TextWriter writer)
+        {
+            writer.WriteString("φ");
         }
 
         public static void WritePunctuation(this TextWriter writer, string text)

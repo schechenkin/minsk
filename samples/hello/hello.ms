@@ -1,7 +1,9 @@
 function main()
-{
+{   
+    var a = 1
     var b = 2
-    var a : int[] = array(5)
-    a[b] = 42
-    print(a[b])
+    if(a > 2)
+    {
+        print("lol")
+    }
 }

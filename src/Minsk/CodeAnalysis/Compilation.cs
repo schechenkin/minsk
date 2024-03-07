@@ -1,11 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using Minsk.CodeAnalysis.Binding;
+using Minsk.CodeAnalysis.Binding.CFG;
+using Minsk.CodeAnalysis.Binding.SSA;
 using Minsk.CodeAnalysis.Emit;
+using Minsk.CodeAnalysis.IR;
 using Minsk.CodeAnalysis.Symbols;
 using Minsk.CodeAnalysis.Syntax;
 
@@ -96,16 +100,6 @@ namespace Minsk.CodeAnalysis
 
             var program = GetProgram();
 
-            // var appPath = Environment.GetCommandLineArgs()[0];
-            // var appDirectory = Path.GetDirectoryName(appPath);
-            // var cfgPath = Path.Combine(appDirectory, "cfg.dot");
-            // var cfgStatement = !program.Statement.Statements.Any() && program.Functions.Any()
-            //                       ? program.Functions.Last().Value
-            //                       : program.Statement;
-            // var cfg = ControlFlowGraph.Create(cfgStatement);
-            // using (var streamWriter = new StreamWriter(cfgPath))
-            //     cfg.WriteTo(streamWriter);
-
             if (program.Diagnostics.HasErrors())
                 return new EvaluationResult(program.Diagnostics, null);
 
@@ -117,8 +111,16 @@ namespace Minsk.CodeAnalysis
 
         public void EmitTree(TextWriter writer)
         {
+            EmitEnumDeclarations(GlobalScope.Enums, writer);
+            
             if (GlobalScope.MainFunction != null)
-                EmitTree(GlobalScope.MainFunction, writer);
+            {
+                foreach(var f in GlobalScope.Functions)
+                {
+                    EmitTree(f, writer);
+                    writer.WriteLine();
+                }
+            }
             else if (GlobalScope.ScriptFunction != null)
                 EmitTree(GlobalScope.ScriptFunction, writer);
         }
@@ -131,10 +133,24 @@ namespace Minsk.CodeAnalysis
             if (!program.Functions.TryGetValue(symbol, out var body))
                 return;
             body.WriteTo(writer);
+
+            /*writer.WriteLine("Tree view");
+            var printer = new BoundNodeTreeViewPrinter(writer);
+            printer.Print(body);*/
+        }
+
+        public void EmitEnumDeclarations(ImmutableArray<EnumSymbol> enumSymbols, TextWriter writer)
+        {
+            foreach(var enumSymbol in enumSymbols)
+            {
+                enumSymbol.WriteTo(writer);
+                writer.WriteLine();
+            }
+            writer.WriteLine();
         }
 
         // TODO: References should be part of the compilation, not arguments for Emit
-        public ImmutableArray<Diagnostic> Emit(string moduleName, string[] references, string outputPath)
+        public ImmutableArray<Diagnostic> EmitIL(string moduleName, string[] references, string outputPath)
         {
             var parseDiagnostics = SyntaxTrees.SelectMany(st => st.Diagnostics);
 
@@ -143,7 +159,118 @@ namespace Minsk.CodeAnalysis
                 return diagnostics;
 
             var program = GetProgram();
-            return Emitter.Emit(program, moduleName, references, outputPath);
+
+            if (program.Diagnostics.HasErrors())
+                return program.Diagnostics;
+
+            return ILEmitter.Emit(program, moduleName, references, outputPath);
+        }
+
+        public ImmutableArray<Diagnostic> EmitAssembly(string moduleName, string outputPath)
+        {
+            var parseDiagnostics = SyntaxTrees.SelectMany(st => st.Diagnostics);
+
+            var diagnostics = parseDiagnostics.Concat(GlobalScope.Diagnostics).ToImmutableArray();
+            if (diagnostics.HasErrors())
+                return diagnostics;
+
+            var program = GetProgram();
+
+            if (program.Diagnostics.HasErrors())
+                return program.Diagnostics;
+
+            RecreateFolder("tmp");
+
+            var asmEmitter = new AsmEmitter();
+            
+            var asmFile = Path.Combine("tmp", $"{moduleName}.s");
+            diagnostics = asmEmitter.Emit(program, asmFile);
+            
+            if (diagnostics.HasErrors())
+                return diagnostics;
+
+            CreateExecutable(asmFile, outputPath);
+
+            return diagnostics;
+        }
+
+        public ImmutableArray<Diagnostic> EmitIR(string moduleName, string outputPath)
+        {
+            var parseDiagnostics = SyntaxTrees.SelectMany(st => st.Diagnostics);
+
+            var diagnostics = parseDiagnostics.Concat(GlobalScope.Diagnostics).ToImmutableArray();
+            if (diagnostics.HasErrors())
+                return diagnostics;
+
+            var program = GetProgram();
+
+            //TODO
+            //lets take main func
+            //build cfg for main
+            //fill graph nodes with corresponding IR instuctions
+
+            BoundBlockStatement body = program.Functions.Where(f => f.Key == program.MainFunction).Select(kvp => kvp.Value).First();
+            var cfg = ControlFlowGraph.Create(body);
+            VirtualRegister register = VirtualRegister.Num(1);
+            cfg.Traverse((block) => {
+                var emitter = new IREmitter(register, block);
+                var instructions = emitter.Emit(out register);
+                block.Instructions = instructions.ToList();
+            });
+            
+            cfg.Dump("cfg_ir.dot", "main");
+
+            /*if (program.Diagnostics.HasErrors())
+                return program.Diagnostics;
+
+            RecreateFolder("tmp");
+
+            var irEmitter = new IREmitter_old();
+            var irFile = Path.Combine("tmp", $"{moduleName}.ir");
+
+            diagnostics = irEmitter.Emit(program, irFile);*/
+
+            return diagnostics;
+        }
+
+        private void RecreateFolder(string path)
+        {
+            if (Directory.Exists(path))
+                Directory.Delete(path, true);
+            Directory.CreateDirectory(path);
+        }
+
+        private void CreateExecutable(string source, string output)
+        {                    
+            var process = new Process()
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "/bin/bash",
+                    Arguments = $"-c \"gcc {source} minsklib.c -o {output} -g\"",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                }
+            };
+
+            process.Start();
+            string result = process.StandardOutput.ReadToEnd();
+            process.WaitForExit();
+        }
+
+        public void DumpControlFlowGraphs(string folderPth)
+        {
+            var program = GetProgram();
+            
+            foreach (var kvp in program.Functions)
+            {
+                var cfgPath = Path.Combine(folderPth, $"cfg_{kvp.Key.Name}.dot");
+                var cfgStatement = kvp.Value;
+                var cfg = ControlFlowGraph.Create(cfgStatement);
+                using (var streamWriter = new StreamWriter(cfgPath))
+                    cfg.WriteTo(streamWriter);
+            }
         }
     }
 }

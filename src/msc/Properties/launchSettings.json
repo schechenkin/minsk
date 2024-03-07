@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "msc": {
+        "commandName": "Project",
+        "commandLineArgs": "/home/sergey/projects/minsk/samples/hello/hello.ms -m hello -f IR -sp true -st false -o a.out"
+    }
+  }
+}

@@ -1,6 +1,7 @@
 using System;
 using System.CodeDom.Compiler;
 using System.IO;
+using Minsk.CodeAnalysis.Binding.SSA;
 using Minsk.CodeAnalysis.Symbols;
 using Minsk.CodeAnalysis.Syntax;
 using Minsk.IO;
@@ -84,9 +85,49 @@ namespace Minsk.CodeAnalysis.Binding
                 case BoundNodeKind.ConversionExpression:
                     WriteConversionExpression((BoundConversionExpression)node, writer);
                     break;
+                case BoundNodeKind.ArrayCreationExpression:
+                    WriteArrayCreationExpression((BoundArrayCreationExpression)node, writer);
+                    break;
+                case BoundNodeKind.ArrayElementAccessExpression:
+                    WriteArrayElementAccessExpression((BoundArrayElementAccessExpression)node, writer);
+                    break;
+                case BoundNodeKind.EnumMemberAccessExpression:
+                    WriteEnumMemberAccessExpression((BoundEnumMemberAccessExpression)node, writer);
+                    break;
                 default:
                     throw new Exception($"Unexpected node {node.Kind}");
             }
+        }
+
+        public static void WriteTo(this PhiNode node, IndentedTextWriter writer)
+        {
+            writer.WriteIdentifier(node.Destination.Name);
+            writer.WriteSpace();
+            writer.WritePunctuation(SyntaxKind.EqualsToken);
+            writer.WriteSpace();
+            writer.WritePhi();
+            writer.WritePunctuation(SyntaxKind.OpenParenthesisToken);
+            var isFirst = true;
+            foreach (var argument in node.Arguments)
+            {
+                if (isFirst)
+                {
+                    isFirst = false;
+                }
+                else
+                {
+                    writer.WritePunctuation(SyntaxKind.CommaToken);
+                    writer.WriteSpace();
+                }
+
+                writer.WriteIdentifier(argument.Variable.Name);
+                writer.WritePunctuation(SyntaxKind.OpenBraceToken);
+                writer.WriteString($"B{argument.From.Number}");
+                writer.WritePunctuation(SyntaxKind.CloseBraceToken);
+
+            }
+            writer.WritePunctuation(SyntaxKind.CloseParenthesisToken);
+            writer.WriteLine();
         }
 
         private static void WriteNestedStatement(this IndentedTextWriter writer, BoundStatement node)
@@ -297,6 +338,12 @@ namespace Minsk.CodeAnalysis.Binding
         private static void WriteAssignmentExpression(BoundAssignmentExpression node, IndentedTextWriter writer)
         {
             writer.WriteIdentifier(node.Variable.Name);
+            if(node.ArrayElementIndexExpression != null)
+            {
+                writer.WritePunctuation(SyntaxKind.OpenBracketToken);
+                node.ArrayElementIndexExpression.WriteTo(writer);
+                writer.WritePunctuation(SyntaxKind.CloseBracketToken);
+            }
             writer.WriteSpace();
             writer.WritePunctuation(SyntaxKind.EqualsToken);
             writer.WriteSpace();
@@ -362,6 +409,28 @@ namespace Minsk.CodeAnalysis.Binding
             writer.WritePunctuation(SyntaxKind.OpenParenthesisToken);
             node.Expression.WriteTo(writer);
             writer.WritePunctuation(SyntaxKind.CloseParenthesisToken);
+        }
+        private static void WriteArrayCreationExpression(BoundArrayCreationExpression node, IndentedTextWriter writer)
+        {
+            writer.WriteKeyword(SyntaxKind.ArrayKeyword);
+            writer.WritePunctuation(SyntaxKind.OpenParenthesisToken);
+            node.SizeExpression.WriteTo(writer);
+            writer.WritePunctuation(SyntaxKind.CloseParenthesisToken);
+        }
+
+        private static void WriteArrayElementAccessExpression(BoundArrayElementAccessExpression node, IndentedTextWriter writer)
+        {
+            writer.WriteIdentifier(node.Variable.Name);
+            writer.WritePunctuation(SyntaxKind.OpenBracketToken);
+            node.ElementIndexExpression.WriteTo(writer);
+            writer.WritePunctuation(SyntaxKind.CloseBracketToken);
+        }
+
+        private static void WriteEnumMemberAccessExpression(BoundEnumMemberAccessExpression node, IndentedTextWriter writer)
+        {
+            writer.WriteEnum(node.EnumSymbol.Name);
+            writer.WritePunctuation(SyntaxKind.DotToken);
+            writer.WriteEnumMember(node.EnumMember.Name);
         }
     }
 }

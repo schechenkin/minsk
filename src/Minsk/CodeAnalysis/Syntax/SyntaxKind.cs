@@ -67,7 +67,7 @@ namespace Minsk.CodeAnalysis.Syntax
         VarKeyword,
         WhileKeyword,
         DoKeyword,
-        Array,
+        ArrayKeyword,
 
         // Nodes
         CompilationUnit,

@@ -1,4 +1,3 @@
-using System;
 using Minsk.CodeAnalysis.Symbols;
 using Minsk.CodeAnalysis.Syntax;
 
@@ -21,8 +20,13 @@ namespace Minsk.CodeAnalysis.Binding
 
         public override BoundNodeKind Kind => BoundNodeKind.AssignmentExpression;
         public override TypeSymbol Type => Expression.Type;
-        public VariableSymbol Variable { get; }
+        public VariableSymbol Variable { get; private set;}
         public BoundExpression Expression { get; }
         public BoundExpression? ArrayElementIndexExpression { get; }
+
+        public void RenameVariableWith(VariableSymbol newVariable)
+        {
+            Variable = newVariable;
+        }
     }
 }

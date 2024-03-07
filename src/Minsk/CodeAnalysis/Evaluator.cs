@@ -294,7 +294,7 @@ namespace Minsk.CodeAnalysis
             {
                 return Console.ReadLine();
             }
-            else if (node.Function == BuiltinFunctions.Print)
+            else if (node.Function == BuiltinFunctions.PrintString || node.Function == BuiltinFunctions.PrintInt)
             {
                 var value = EvaluateExpression(node.Arguments[0]);
                 Console.WriteLine(value);

@@ -14,7 +14,13 @@ namespace Minsk.CodeAnalysis.Binding
 
         public override BoundNodeKind Kind => BoundNodeKind.VariableExpression;
         public override TypeSymbol Type => Variable.Type;
-        public VariableSymbol Variable { get; }
+        public VariableSymbol Variable { get; private set; }
         public override BoundConstant? ConstantValue => Variable.Constant;
+
+        internal void RenameVariableWith(VariableSymbol variable)
+        {
+            Variable = variable;
+        }
+
     }
 }

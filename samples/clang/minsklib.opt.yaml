@@ -1,0 +1,814 @@
+--- !Missed
+Pass:            inline
+Name:            NoDefinition
+DebugLoc:        { File: '/usr/include/stdlib.h', Line: 376, Column: 10 }
+Function:        atoll
+Args:
+  - Callee:          strtoll
+  - String:          ' will not be inlined into '
+  - Caller:          atoll
+    DebugLoc:        { File: '/usr/include/stdlib.h', Line: 375, Column: 0 }
+  - String:          ' because its definition is unavailable'
+...
+--- !Missed
+Pass:            inline
+Name:            NoDefinition
+DebugLoc:        { File: minsklib.c, Line: 9, Column: 3 }
+Function:        printInt
+Args:
+  - Callee:          printf
+  - String:          ' will not be inlined into '
+  - Caller:          printInt
+    DebugLoc:        { File: minsklib.c, Line: 8, Column: 0 }
+  - String:          ' because its definition is unavailable'
+...
+--- !Missed
+Pass:            inline
+Name:            NoDefinition
+DebugLoc:        { File: minsklib.c, Line: 14, Column: 3 }
+Function:        printText
+Args:
+  - Callee:          puts
+  - String:          ' will not be inlined into '
+  - Caller:          printText
+    DebugLoc:        { File: minsklib.c, Line: 13, Column: 0 }
+  - String:          ' because its definition is unavailable'
+...
+--- !Missed
+Pass:            inline
+Name:            NoDefinition
+DebugLoc:        { File: minsklib.c, Line: 20, Column: 7 }
+Function:        start_timer
+Args:
+  - Callee:          clock
+  - String:          ' will not be inlined into '
+  - Caller:          start_timer
+    DebugLoc:        { File: minsklib.c, Line: 19, Column: 0 }
+  - String:          ' because its definition is unavailable'
+...
+--- !Missed
+Pass:            inline
+Name:            NoDefinition
+DebugLoc:        { File: minsklib.c, Line: 25, Column: 7 }
+Function:        stop_timer
+Args:
+  - Callee:          clock
+  - String:          ' will not be inlined into '
+  - Caller:          stop_timer
+    DebugLoc:        { File: minsklib.c, Line: 24, Column: 0 }
+  - String:          ' because its definition is unavailable'
+...
+--- !Missed
+Pass:            inline
+Name:            NoDefinition
+DebugLoc:        { File: minsklib.c, Line: 27, Column: 3 }
+Function:        stop_timer
+Args:
+  - Callee:          printf
+  - String:          ' will not be inlined into '
+  - Caller:          stop_timer
+    DebugLoc:        { File: minsklib.c, Line: 24, Column: 0 }
+  - String:          ' because its definition is unavailable'
+...
+--- !Missed
+Pass:            gvn
+Name:            LoadClobbered
+DebugLoc:        { File: minsklib.c, Line: 25, Column: 17 }
+Function:        stop_timer
+Args:
+  - String:          'load of type '
+  - Type:            i64
+  - String:          ' not eliminated'
+  - String:          ' because it is clobbered by '
+  - ClobberedBy:     call
+    DebugLoc:        { File: minsklib.c, Line: 25, Column: 7 }
+...
+--- !Missed
+Pass:            inline
+Name:            NoDefinition
+DebugLoc:        { File: minsklib.c, Line: 37, Column: 8 }
+Function:        readInput
+Args:
+  - Callee:          fgets
+  - String:          ' will not be inlined into '
+  - Caller:          readInput
+    DebugLoc:        { File: minsklib.c, Line: 31, Column: 0 }
+  - String:          ' because its definition is unavailable'
+...
+--- !Missed
+Pass:            inline
+Name:            NoDefinition
+DebugLoc:        { File: minsklib.c, Line: 38, Column: 18 }
+Function:        readInput
+Args:
+  - Callee:          strlen
+  - String:          ' will not be inlined into '
+  - Caller:          readInput
+    DebugLoc:        { File: minsklib.c, Line: 31, Column: 0 }
+  - String:          ' because its definition is unavailable'
+...
+--- !Missed
+Pass:            inline
+Name:            NoDefinition
+DebugLoc:        { File: minsklib.c, Line: 39, Column: 16 }
+Function:        readInput
+Args:
+  - Callee:          realloc
+  - String:          ' will not be inlined into '
+  - Caller:          readInput
+    DebugLoc:        { File: minsklib.c, Line: 31, Column: 0 }
+  - String:          ' because its definition is unavailable'
+...
+--- !Missed
+Pass:            inline
+Name:            NoDefinition
+DebugLoc:        { File: minsklib.c, Line: 40, Column: 8 }
+Function:        readInput
+Args:
+  - Callee:          strcpy
+  - String:          ' will not be inlined into '
+  - Caller:          readInput
+    DebugLoc:        { File: minsklib.c, Line: 31, Column: 0 }
+  - String:          ' because its definition is unavailable'
+...
+--- !Missed
+Pass:            licm
+Name:            LoadWithLoopInvariantAddressInvalidated
+DebugLoc:        { File: minsklib.c, Line: 37, Column: 30 }
+Function:        readInput
+Args:
+  - String:          failed to move load with loop-invariant address because the loop may invalidate its value
+...
+--- !Missed
+Pass:            licm
+Name:            LoadWithLoopInvariantAddressInvalidated
+DebugLoc:        { File: minsklib.c, Line: 37, Column: 30 }
+Function:        readInput
+Args:
+  - String:          failed to move load with loop-invariant address because the loop may invalidate its value
+...
+--- !Passed
+Pass:            licm
+Name:            Hoisted
+DebugLoc:        { File: minsklib.c, Line: 42, Column: 31 }
+Function:        readInput
+Args:
+  - String:          'hoisting '
+  - Inst:            getelementptr
+    DebugLoc:        { File: minsklib.c, Line: 42, Column: 31 }
+...
+--- !Missed
+Pass:            licm
+Name:            LoadWithLoopInvariantAddressInvalidated
+DebugLoc:        { File: minsklib.c, Line: 42, Column: 31 }
+Function:        readInput
+Args:
+  - String:          failed to move load with loop-invariant address because the loop may invalidate its value
+...
+--- !Passed
+Pass:            TTI
+Name:            DontUnroll
+DebugLoc:        { File: minsklib.c, Line: 36, Column: 4 }
+Function:        readInput
+Args:
+  - String:          'advising against unrolling the loop because it contains a '
+  - Call:            call
+    DebugLoc:        { File: minsklib.c, Line: 37, Column: 8 }
+...
+--- !Missed
+Pass:            gvn
+Name:            LoadClobbered
+DebugLoc:        { File: minsklib.c, Line: 37, Column: 30 }
+Function:        readInput
+Args:
+  - String:          'load of type '
+  - Type:            ptr
+  - String:          ' not eliminated'
+  - String:          ' because it is clobbered by '
+  - ClobberedBy:     call
+    DebugLoc:        { File: minsklib.c, Line: 37, Column: 8 }
+...
+--- !Missed
+Pass:            gvn
+Name:            LoadClobbered
+DebugLoc:        { File: minsklib.c, Line: 42, Column: 31 }
+Function:        readInput
+Args:
+  - String:          'load of type '
+  - Type:            i8
+  - String:          ' not eliminated'
+  - String:          ' because it is clobbered by '
+  - ClobberedBy:     call
+    DebugLoc:        { File: minsklib.c, Line: 37, Column: 8 }
+...
+--- !Missed
+Pass:            gvn
+Name:            LoadClobbered
+DebugLoc:        { File: minsklib.c, Line: 37, Column: 30 }
+Function:        readInput
+Args:
+  - String:          'load of type '
+  - Type:            ptr
+  - String:          ' not eliminated'
+  - String:          ' because it is clobbered by '
+  - ClobberedBy:     call
+    DebugLoc:        { File: minsklib.c, Line: 37, Column: 8 }
+...
+--- !Missed
+Pass:            gvn
+Name:            LoadClobbered
+DebugLoc:        { File: minsklib.c, Line: 42, Column: 31 }
+Function:        readInput
+Args:
+  - String:          'load of type '
+  - Type:            i8
+  - String:          ' not eliminated'
+  - String:          ' because it is clobbered by '
+  - ClobberedBy:     call
+    DebugLoc:        { File: minsklib.c, Line: 37, Column: 8 }
+...
+--- !Missed
+Pass:            licm
+Name:            LoadWithLoopInvariantAddressInvalidated
+DebugLoc:        { File: minsklib.c, Line: 37, Column: 30 }
+Function:        readInput
+Args:
+  - String:          failed to move load with loop-invariant address because the loop may invalidate its value
+...
+--- !Missed
+Pass:            licm
+Name:            LoadWithLoopInvariantAddressInvalidated
+DebugLoc:        { File: minsklib.c, Line: 42, Column: 31 }
+Function:        readInput
+Args:
+  - String:          failed to move load with loop-invariant address because the loop may invalidate its value
+...
+--- !Missed
+Pass:            inline
+Name:            NoDefinition
+DebugLoc:        { File: minsklib.c, Line: 63, Column: 3 }
+Function:        convert_int_to_string
+Args:
+  - Callee:          sprintf
+  - String:          ' will not be inlined into '
+  - Caller:          convert_int_to_string
+    DebugLoc:        { File: minsklib.c, Line: 62, Column: 0 }
+  - String:          ' because its definition is unavailable'
+...
+--- !Passed
+Pass:            inline
+Name:            Inlined
+DebugLoc:        { File: minsklib.c, Line: 69, Column: 10 }
+Function:        convert_string_to_int
+Args:
+  - String:          ''''
+  - Callee:          atoll
+    DebugLoc:        { File: '/usr/include/stdlib.h', Line: 375, Column: 0 }
+  - String:          ''' inlined into '''
+  - Caller:          convert_string_to_int
+    DebugLoc:        { File: minsklib.c, Line: 68, Column: 0 }
+  - String:          ''''
+  - String:          ' with '
+  - String:          '(cost='
+  - Cost:            '10'
+  - String:          ', threshold='
+  - Threshold:       '487'
+  - String:          ')'
+  - String:          ' at callsite '
+  - String:          convert_string_to_int
+  - String:          ':'
+  - Line:            '2'
+  - String:          ':'
+  - Column:          '10'
+  - String:          ';'
+...
+--- !Missed
+Pass:            inline
+Name:            NoDefinition
+DebugLoc:        { File: minsklib.c, Line: 78, Column: 9 }
+Function:        minsk_rand
+Args:
+  - Callee:          clock
+  - String:          ' will not be inlined into '
+  - Caller:          minsk_rand
+    DebugLoc:        { File: minsklib.c, Line: 74, Column: 0 }
+  - String:          ' because its definition is unavailable'
+...
+--- !Missed
+Pass:            inline
+Name:            NoDefinition
+DebugLoc:        { File: minsklib.c, Line: 79, Column: 21 }
+Function:        minsk_rand
+Args:
+  - Callee:          time
+  - String:          ' will not be inlined into '
+  - Caller:          minsk_rand
+    DebugLoc:        { File: minsklib.c, Line: 74, Column: 0 }
+  - String:          ' because its definition is unavailable'
+...
+--- !Missed
+Pass:            inline
+Name:            NoDefinition
+DebugLoc:        { File: minsklib.c, Line: 79, Column: 5 }
+Function:        minsk_rand
+Args:
+  - Callee:          srand
+  - String:          ' will not be inlined into '
+  - Caller:          minsk_rand
+    DebugLoc:        { File: minsklib.c, Line: 74, Column: 0 }
+  - String:          ' because its definition is unavailable'
+...
+--- !Missed
+Pass:            inline
+Name:            NoDefinition
+DebugLoc:        { File: minsklib.c, Line: 82, Column: 10 }
+Function:        minsk_rand
+Args:
+  - Callee:          rand
+  - String:          ' will not be inlined into '
+  - Caller:          minsk_rand
+    DebugLoc:        { File: minsklib.c, Line: 74, Column: 0 }
+  - String:          ' because its definition is unavailable'
+...
+--- !Analysis
+Pass:            loop-vectorize
+Name:            NonReductionValueUsedOutsideLoop
+DebugLoc:        { File: minsklib.c, Line: 0, Column: 0 }
+Function:        readInput
+Args:
+  - String:          'loop not vectorized: '
+  - String:          value that could not be identified as reduction is used outside the loop
+...
+--- !Analysis
+Pass:            loop-vectorize
+Name:            CantComputeNumberOfIterations
+DebugLoc:        { File: minsklib.c, Line: 36, Column: 4 }
+Function:        readInput
+Args:
+  - String:          'loop not vectorized: '
+  - String:          could not determine number of loop iterations
+...
+--- !Missed
+Pass:            loop-vectorize
+Name:            MissedDetails
+DebugLoc:        { File: minsklib.c, Line: 36, Column: 4 }
+Function:        readInput
+Args:
+  - String:          loop not vectorized
+...
+--- !Passed
+Pass:            TTI
+Name:            DontUnroll
+DebugLoc:        { File: minsklib.c, Line: 36, Column: 4 }
+Function:        readInput
+Args:
+  - String:          'advising against unrolling the loop because it contains a '
+  - Call:            call
+    DebugLoc:        { File: minsklib.c, Line: 37, Column: 8 }
+...
+--- !Missed
+Pass:            licm
+Name:            LoadWithLoopInvariantAddressInvalidated
+DebugLoc:        { File: minsklib.c, Line: 37, Column: 30 }
+Function:        readInput
+Args:
+  - String:          failed to move load with loop-invariant address because the loop may invalidate its value
+...
+--- !Missed
+Pass:            licm
+Name:            LoadWithLoopInvariantAddressInvalidated
+DebugLoc:        { File: minsklib.c, Line: 42, Column: 31 }
+Function:        readInput
+Args:
+  - String:          failed to move load with loop-invariant address because the loop may invalidate its value
+...
+--- !Missed
+Pass:            regalloc
+Name:            SpillReloadCopies
+DebugLoc:        { File: minsklib.c, Line: 7, Column: 1 }
+Function:        printInt
+Args:
+  - NumVRCopies:     '1'
+  - String:          ' virtual registers copies '
+  - TotalCopiesCost: '1.000000e+00'
+  - String:          ' total copies cost '
+  - String:          generated in function
+...
+--- !Analysis
+Pass:            prologepilog
+Name:            StackSize
+DebugLoc:        { File: minsklib.c, Line: 8, Column: 0 }
+Function:        printInt
+Args:
+  - NumStackBytes:   '0'
+  - String:          ' stack bytes in function '''
+  - Function:        printInt
+  - String:          ''''
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionMix
+Function:        printInt
+Args:
+  - String:          'BasicBlock: '
+  - BasicBlock:      entry
+  - String:          "\n"
+  - String:          ''
+  - String:          ': '
+  - INST_:           '4'
+  - String:          "\n"
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionCount
+DebugLoc:        { File: minsklib.c, Line: 8, Column: 0 }
+Function:        printInt
+Args:
+  - NumInstructions: '4'
+  - String:          ' instructions in function'
+...
+--- !Analysis
+Pass:            prologepilog
+Name:            StackSize
+DebugLoc:        { File: minsklib.c, Line: 13, Column: 0 }
+Function:        printText
+Args:
+  - NumStackBytes:   '0'
+  - String:          ' stack bytes in function '''
+  - Function:        printText
+  - String:          ''''
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionMix
+DebugLoc:        { File: minsklib.c, Line: 14, Column: 3 }
+Function:        printText
+Args:
+  - String:          'BasicBlock: '
+  - BasicBlock:      entry
+  - String:          "\n"
+  - String:          ''
+  - String:          ': '
+  - INST_:           '1'
+  - String:          "\n"
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionCount
+DebugLoc:        { File: minsklib.c, Line: 13, Column: 0 }
+Function:        printText
+Args:
+  - NumInstructions: '1'
+  - String:          ' instructions in function'
+...
+--- !Analysis
+Pass:            prologepilog
+Name:            StackSize
+DebugLoc:        { File: minsklib.c, Line: 19, Column: 0 }
+Function:        start_timer
+Args:
+  - NumStackBytes:   '8'
+  - String:          ' stack bytes in function '''
+  - Function:        start_timer
+  - String:          ''''
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionMix
+Function:        start_timer
+Args:
+  - String:          'BasicBlock: '
+  - BasicBlock:      entry
+  - String:          "\n"
+  - String:          ''
+  - String:          ': '
+  - INST_:           '5'
+  - String:          "\n"
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionCount
+DebugLoc:        { File: minsklib.c, Line: 19, Column: 0 }
+Function:        start_timer
+Args:
+  - NumInstructions: '5'
+  - String:          ' instructions in function'
+...
+--- !Analysis
+Pass:            prologepilog
+Name:            StackSize
+DebugLoc:        { File: minsklib.c, Line: 24, Column: 0 }
+Function:        stop_timer
+Args:
+  - NumStackBytes:   '8'
+  - String:          ' stack bytes in function '''
+  - Function:        stop_timer
+  - String:          ''''
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionMix
+Function:        stop_timer
+Args:
+  - String:          'BasicBlock: '
+  - BasicBlock:      entry
+  - String:          "\n"
+  - String:          ''
+  - String:          ': '
+  - INST_:           '10'
+  - String:          "\n"
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionCount
+DebugLoc:        { File: minsklib.c, Line: 24, Column: 0 }
+Function:        stop_timer
+Args:
+  - NumInstructions: '10'
+  - String:          ' instructions in function'
+...
+--- !Missed
+Pass:            regalloc
+Name:            LoopSpillReloadCopies
+DebugLoc:        { File: minsklib.c, Line: 36, Column: 4 }
+Function:        readInput
+Args:
+  - NumVRCopies:     '8'
+  - String:          ' virtual registers copies '
+  - TotalCopiesCost: '2.560000e+02'
+  - String:          ' total copies cost '
+  - String:          generated in loop
+...
+--- !Missed
+Pass:            regalloc
+Name:            SpillReloadCopies
+DebugLoc:        { File: minsklib.c, Line: 30, Column: 1 }
+Function:        readInput
+Args:
+  - NumVRCopies:     '9'
+  - String:          ' virtual registers copies '
+  - TotalCopiesCost: '2.570000e+02'
+  - String:          ' total copies cost '
+  - String:          generated in function
+...
+--- !Analysis
+Pass:            prologepilog
+Name:            StackSize
+DebugLoc:        { File: minsklib.c, Line: 31, Column: 0 }
+Function:        readInput
+Args:
+  - NumStackBytes:   '72'
+  - String:          ' stack bytes in function '''
+  - Function:        readInput
+  - String:          ''''
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionMix
+Function:        readInput
+Args:
+  - String:          'BasicBlock: '
+  - BasicBlock:      entry
+  - String:          "\n"
+  - String:          ''
+  - String:          ': '
+  - INST_:           '11'
+  - String:          "\n"
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionMix
+DebugLoc:        { File: minsklib.c, Line: 0, Column: 0 }
+Function:        readInput
+Args:
+  - String:          'BasicBlock: '
+  - BasicBlock:      do.body
+  - String:          "\n"
+  - String:          ''
+  - String:          ': '
+  - INST_:           '20'
+  - String:          "\n"
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionMix
+DebugLoc:        { File: minsklib.c, Line: 42, Column: 5 }
+Function:        readInput
+Args:
+  - String:          'BasicBlock: '
+  - BasicBlock:      do.body
+  - String:          "\n"
+  - String:          ''
+  - String:          ': '
+  - INST_:           '2'
+  - String:          "\n"
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionMix
+DebugLoc:        { File: minsklib.c, Line: 44, Column: 25 }
+Function:        readInput
+Args:
+  - String:          'BasicBlock: '
+  - BasicBlock:      do.end
+  - String:          "\n"
+  - String:          ''
+  - String:          ': '
+  - INST_:           '10'
+  - String:          "\n"
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionCount
+DebugLoc:        { File: minsklib.c, Line: 31, Column: 0 }
+Function:        readInput
+Args:
+  - NumInstructions: '43'
+  - String:          ' instructions in function'
+...
+--- !Analysis
+Pass:            prologepilog
+Name:            StackSize
+DebugLoc:        { File: minsklib.c, Line: 53, Column: 0 }
+Function:        convert_bool_to_string
+Args:
+  - NumStackBytes:   '0'
+  - String:          ' stack bytes in function '''
+  - Function:        convert_bool_to_string
+  - String:          ''''
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionMix
+DebugLoc:        { File: minsklib.c, Line: 0, Column: 0 }
+Function:        convert_bool_to_string
+Args:
+  - String:          'BasicBlock: '
+  - BasicBlock:      entry
+  - String:          "\n"
+  - String:          ''
+  - String:          ': '
+  - INST_:           '5'
+  - String:          "\n"
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionCount
+DebugLoc:        { File: minsklib.c, Line: 53, Column: 0 }
+Function:        convert_bool_to_string
+Args:
+  - NumInstructions: '5'
+  - String:          ' instructions in function'
+...
+--- !Missed
+Pass:            regalloc
+Name:            SpillReloadCopies
+DebugLoc:        { File: minsklib.c, Line: 61, Column: 1 }
+Function:        convert_int_to_string
+Args:
+  - NumVRCopies:     '3'
+  - String:          ' virtual registers copies '
+  - TotalCopiesCost: '3.000000e+00'
+  - String:          ' total copies cost '
+  - String:          generated in function
+...
+--- !Analysis
+Pass:            prologepilog
+Name:            StackSize
+DebugLoc:        { File: minsklib.c, Line: 62, Column: 0 }
+Function:        convert_int_to_string
+Args:
+  - NumStackBytes:   '8'
+  - String:          ' stack bytes in function '''
+  - Function:        convert_int_to_string
+  - String:          ''''
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionMix
+Function:        convert_int_to_string
+Args:
+  - String:          'BasicBlock: '
+  - BasicBlock:      entry
+  - String:          "\n"
+  - String:          ''
+  - String:          ': '
+  - INST_:           '10'
+  - String:          "\n"
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionCount
+DebugLoc:        { File: minsklib.c, Line: 62, Column: 0 }
+Function:        convert_int_to_string
+Args:
+  - NumInstructions: '10'
+  - String:          ' instructions in function'
+...
+--- !Analysis
+Pass:            prologepilog
+Name:            StackSize
+DebugLoc:        { File: minsklib.c, Line: 68, Column: 0 }
+Function:        convert_string_to_int
+Args:
+  - NumStackBytes:   '0'
+  - String:          ' stack bytes in function '''
+  - Function:        convert_string_to_int
+  - String:          ''''
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionMix
+DebugLoc:        { File: '/usr/include/stdlib.h', Line: 376, Column: 10 }
+Function:        convert_string_to_int
+Args:
+  - String:          'BasicBlock: '
+  - BasicBlock:      entry
+  - String:          "\n"
+  - String:          ''
+  - String:          ': '
+  - INST_:           '3'
+  - String:          "\n"
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionCount
+DebugLoc:        { File: minsklib.c, Line: 68, Column: 0 }
+Function:        convert_string_to_int
+Args:
+  - NumInstructions: '3'
+  - String:          ' instructions in function'
+...
+--- !Missed
+Pass:            regalloc
+Name:            SpillReloadCopies
+DebugLoc:        { File: minsklib.c, Line: 74, Column: 1 }
+Function:        minsk_rand
+Args:
+  - NumVRCopies:     '3'
+  - String:          ' virtual registers copies '
+  - TotalCopiesCost: '2.375000e+00'
+  - String:          ' total copies cost '
+  - String:          generated in function
+...
+--- !Analysis
+Pass:            prologepilog
+Name:            StackSize
+DebugLoc:        { File: minsklib.c, Line: 74, Column: 0 }
+Function:        minsk_rand
+Args:
+  - NumStackBytes:   '8'
+  - String:          ' stack bytes in function '''
+  - Function:        minsk_rand
+  - String:          ''''
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionMix
+Function:        minsk_rand
+Args:
+  - String:          'BasicBlock: '
+  - BasicBlock:      entry
+  - String:          "\n"
+  - String:          ''
+  - String:          ': '
+  - INST_:           '4'
+  - String:          "\n"
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionMix
+DebugLoc:        { File: minsklib.c, Line: 78, Column: 9 }
+Function:        minsk_rand
+Args:
+  - String:          'BasicBlock: '
+  - BasicBlock:      if.then
+  - String:          "\n"
+  - String:          ''
+  - String:          ': '
+  - INST_:           '6'
+  - String:          "\n"
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionMix
+DebugLoc:        { File: minsklib.c, Line: 82, Column: 10 }
+Function:        minsk_rand
+Args:
+  - String:          'BasicBlock: '
+  - BasicBlock:      if.end
+  - String:          "\n"
+  - String:          ''
+  - String:          ': '
+  - INST_:           '6'
+  - String:          "\n"
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionCount
+DebugLoc:        { File: minsklib.c, Line: 74, Column: 0 }
+Function:        minsk_rand
+Args:
+  - NumInstructions: '16'
+  - String:          ' instructions in function'
+...

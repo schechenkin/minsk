@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq.Expressions;
+using System.Net.Http.Headers;
 
 namespace Minsk.CodeAnalysis.Binding
 {
@@ -211,11 +212,23 @@ namespace Minsk.CodeAnalysis.Binding
 
         protected virtual BoundExpression RewriteAssignmentExpression(BoundAssignmentExpression node)
         {
-            var expression = RewriteExpression(node.Expression);
-            if (expression == node.Expression)
-                return node;
+            if(node.ArrayElementIndexExpression is null)
+            {
+                var expression = RewriteExpression(node.Expression);
+                if (expression == node.Expression)
+                    return node;
 
-            return new BoundAssignmentExpression(node.Syntax, node.Variable, expression);
+                return new BoundAssignmentExpression(node.Syntax, node.Variable, expression);
+            }
+            else
+            {
+                var expression = RewriteExpression(node.Expression);
+                var arrayElementIndexExpression = RewriteExpression(node.ArrayElementIndexExpression);
+                if (expression == node.Expression && arrayElementIndexExpression == node.ArrayElementIndexExpression)
+                    return node;
+
+                return new BoundAssignmentExpression(node.Syntax, node.Variable, expression, arrayElementIndexExpression);
+            }
         }
         private BoundExpression RewriteArrayCreationExpression(BoundArrayCreationExpression node)
         {

@@ -1,0 +1,328 @@
+--- !Missed
+Pass:            inline
+Name:            NoDefinition
+DebugLoc:        { File: helper.c, Line: 10, Column: 22 }
+Function:        fillArrayWithRandomNumbers
+Args:
+  - Callee:          minsk_rand
+  - String:          ' will not be inlined into '
+  - Caller:          fillArrayWithRandomNumbers
+    DebugLoc:        { File: helper.c, Line: 7, Column: 0 }
+  - String:          ' because its definition is unavailable'
+...
+--- !Passed
+Pass:            TTI
+Name:            DontUnroll
+DebugLoc:        { File: helper.c, Line: 8, Column: 5 }
+Function:        fillArrayWithRandomNumbers
+Args:
+  - String:          'advising against unrolling the loop because it contains a '
+  - Call:            call
+    DebugLoc:        { File: helper.c, Line: 10, Column: 22 }
+...
+--- !Missed
+Pass:            inline
+Name:            NoDefinition
+DebugLoc:        { File: helper.c, Line: 18, Column: 9 }
+Function:        printNumbers
+Args:
+  - Callee:          printf
+  - String:          ' will not be inlined into '
+  - Caller:          printNumbers
+    DebugLoc:        { File: helper.c, Line: 15, Column: 0 }
+  - String:          ' because its definition is unavailable'
+...
+--- !Passed
+Pass:            TTI
+Name:            DontUnroll
+DebugLoc:        { File: helper.c, Line: 16, Column: 5 }
+Function:        printNumbers
+Args:
+  - String:          'advising against unrolling the loop because it contains a '
+  - Call:            call
+    DebugLoc:        { File: helper.c, Line: 18, Column: 9 }
+...
+--- !Analysis
+Pass:            loop-vectorize
+Name:            CantVectorizeLibcall
+DebugLoc:        { File: helper.c, Line: 10, Column: 22 }
+Function:        fillArrayWithRandomNumbers
+Args:
+  - String:          'loop not vectorized: '
+  - String:          call instruction cannot be vectorized
+...
+--- !Analysis
+Pass:            loop-vectorize
+Name:            CantVectorizeInstruction
+DebugLoc:        { File: helper.c, Line: 8, Column: 5 }
+Function:        fillArrayWithRandomNumbers
+Args:
+  - String:          'loop not vectorized: '
+  - String:          instruction cannot be vectorized
+...
+--- !Missed
+Pass:            loop-vectorize
+Name:            MissedDetails
+DebugLoc:        { File: helper.c, Line: 8, Column: 5 }
+Function:        fillArrayWithRandomNumbers
+Args:
+  - String:          loop not vectorized
+...
+--- !Passed
+Pass:            TTI
+Name:            DontUnroll
+DebugLoc:        { File: helper.c, Line: 8, Column: 5 }
+Function:        fillArrayWithRandomNumbers
+Args:
+  - String:          'advising against unrolling the loop because it contains a '
+  - Call:            call
+    DebugLoc:        { File: helper.c, Line: 10, Column: 22 }
+...
+--- !Analysis
+Pass:            loop-vectorize
+Name:            CantVectorizeLibcall
+DebugLoc:        { File: helper.c, Line: 18, Column: 9 }
+Function:        printNumbers
+Args:
+  - String:          'loop not vectorized: '
+  - String:          call instruction cannot be vectorized
+...
+--- !Analysis
+Pass:            loop-vectorize
+Name:            CantVectorizeInstruction
+DebugLoc:        { File: helper.c, Line: 16, Column: 5 }
+Function:        printNumbers
+Args:
+  - String:          'loop not vectorized: '
+  - String:          instruction cannot be vectorized
+...
+--- !Missed
+Pass:            loop-vectorize
+Name:            MissedDetails
+DebugLoc:        { File: helper.c, Line: 16, Column: 5 }
+Function:        printNumbers
+Args:
+  - String:          loop not vectorized
+...
+--- !Passed
+Pass:            TTI
+Name:            DontUnroll
+DebugLoc:        { File: helper.c, Line: 16, Column: 5 }
+Function:        printNumbers
+Args:
+  - String:          'advising against unrolling the loop because it contains a '
+  - Call:            call
+    DebugLoc:        { File: helper.c, Line: 18, Column: 9 }
+...
+--- !Missed
+Pass:            regalloc
+Name:            SpillReloadCopies
+DebugLoc:        { File: helper.c, Line: 6, Column: 1 }
+Function:        fillArrayWithRandomNumbers
+Args:
+  - NumVRCopies:     '2'
+  - String:          ' virtual registers copies '
+  - TotalCopiesCost: '2.000000e+00'
+  - String:          ' total copies cost '
+  - String:          generated in function
+...
+--- !Analysis
+Pass:            prologepilog
+Name:            StackSize
+DebugLoc:        { File: helper.c, Line: 7, Column: 0 }
+Function:        fillArrayWithRandomNumbers
+Args:
+  - NumStackBytes:   '24'
+  - String:          ' stack bytes in function '''
+  - Function:        fillArrayWithRandomNumbers
+  - String:          ''''
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionMix
+DebugLoc:        { File: helper.c, Line: 8, Column: 28 }
+Function:        fillArrayWithRandomNumbers
+Args:
+  - String:          'BasicBlock: '
+  - BasicBlock:      entry
+  - String:          "\n"
+  - String:          ''
+  - String:          ': '
+  - INST_:           '2'
+  - String:          "\n"
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionMix
+Function:        fillArrayWithRandomNumbers
+Args:
+  - String:          'BasicBlock: '
+  - BasicBlock:      for.body.preheader
+  - String:          "\n"
+  - String:          ''
+  - String:          ': '
+  - INST_:           '6'
+  - String:          "\n"
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionMix
+DebugLoc:        { File: helper.c, Line: 10, Column: 22 }
+Function:        fillArrayWithRandomNumbers
+Args:
+  - String:          'BasicBlock: '
+  - BasicBlock:      for.body
+  - String:          "\n"
+  - String:          ''
+  - String:          ': '
+  - INST_:           '7'
+  - String:          "\n"
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionMix
+Function:        fillArrayWithRandomNumbers
+Args:
+  - String:          'BasicBlock: '
+  - BasicBlock:      ''
+  - String:          "\n"
+  - String:          ''
+  - String:          ': '
+  - INST_:           '3'
+  - String:          "\n"
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionMix
+DebugLoc:        { File: helper.c, Line: 12, Column: 1 }
+Function:        fillArrayWithRandomNumbers
+Args:
+  - String:          'BasicBlock: '
+  - BasicBlock:      for.cond.cleanup
+  - String:          "\n"
+  - String:          ''
+  - String:          ': '
+  - INST_:           '1'
+  - String:          "\n"
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionCount
+DebugLoc:        { File: helper.c, Line: 7, Column: 0 }
+Function:        fillArrayWithRandomNumbers
+Args:
+  - NumInstructions: '19'
+  - String:          ' instructions in function'
+...
+--- !Missed
+Pass:            regalloc
+Name:            LoopSpillReloadCopies
+DebugLoc:        { File: helper.c, Line: 16, Column: 5 }
+Function:        printNumbers
+Args:
+  - NumVRCopies:     '1'
+  - String:          ' virtual registers copies '
+  - TotalCopiesCost: '2.000000e+01'
+  - String:          ' total copies cost '
+  - String:          generated in loop
+...
+--- !Missed
+Pass:            regalloc
+Name:            SpillReloadCopies
+DebugLoc:        { File: helper.c, Line: 14, Column: 1 }
+Function:        printNumbers
+Args:
+  - NumVRCopies:     '3'
+  - String:          ' virtual registers copies '
+  - TotalCopiesCost: '2.200000e+01'
+  - String:          ' total copies cost '
+  - String:          generated in function
+...
+--- !Analysis
+Pass:            prologepilog
+Name:            StackSize
+DebugLoc:        { File: helper.c, Line: 15, Column: 0 }
+Function:        printNumbers
+Args:
+  - NumStackBytes:   '40'
+  - String:          ' stack bytes in function '''
+  - Function:        printNumbers
+  - String:          ''''
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionMix
+DebugLoc:        { File: helper.c, Line: 16, Column: 28 }
+Function:        printNumbers
+Args:
+  - String:          'BasicBlock: '
+  - BasicBlock:      entry
+  - String:          "\n"
+  - String:          ''
+  - String:          ': '
+  - INST_:           '2'
+  - String:          "\n"
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionMix
+Function:        printNumbers
+Args:
+  - String:          'BasicBlock: '
+  - BasicBlock:      for.body.preheader
+  - String:          "\n"
+  - String:          ''
+  - String:          ': '
+  - INST_:           '9'
+  - String:          "\n"
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionMix
+DebugLoc:        { File: helper.c, Line: 18, Column: 25 }
+Function:        printNumbers
+Args:
+  - String:          'BasicBlock: '
+  - BasicBlock:      for.body
+  - String:          "\n"
+  - String:          ''
+  - String:          ': '
+  - INST_:           '7'
+  - String:          "\n"
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionMix
+Function:        printNumbers
+Args:
+  - String:          'BasicBlock: '
+  - BasicBlock:      ''
+  - String:          "\n"
+  - String:          ''
+  - String:          ': '
+  - INST_:           '5'
+  - String:          "\n"
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionMix
+DebugLoc:        { File: helper.c, Line: 20, Column: 1 }
+Function:        printNumbers
+Args:
+  - String:          'BasicBlock: '
+  - BasicBlock:      for.cond.cleanup
+  - String:          "\n"
+  - String:          ''
+  - String:          ': '
+  - INST_:           '1'
+  - String:          "\n"
+...
+--- !Analysis
+Pass:            asm-printer
+Name:            InstructionCount
+DebugLoc:        { File: helper.c, Line: 15, Column: 0 }
+Function:        printNumbers
+Args:
+  - NumInstructions: '24'
+  - String:          ' instructions in function'
+...

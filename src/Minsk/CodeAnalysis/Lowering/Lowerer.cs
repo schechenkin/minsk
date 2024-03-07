@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Minsk.CodeAnalysis.Binding;
+using Minsk.CodeAnalysis.Binding.CFG;
 using Minsk.CodeAnalysis.Symbols;
 using static Minsk.CodeAnalysis.Binding.BoundNodeFactory;
 
@@ -29,7 +30,7 @@ namespace Minsk.CodeAnalysis.Lowering
             return RemoveDeadCode(Flatten(function, result));
         }
 
-        private static BoundBlockStatement Flatten(FunctionSymbol function, BoundStatement statement)
+        internal static BoundBlockStatement Flatten(FunctionSymbol function, BoundStatement statement)
         {
             var builder = ImmutableArray.CreateBuilder<BoundStatement>();
             var stack = new Stack<BoundStatement>();
@@ -180,17 +181,37 @@ namespace Minsk.CodeAnalysis.Lowering
             // gotoTrue <condition> body
             // break:
 
+            var statements = new List<BoundStatement>(5);
+            
             var bodyLabel = GenerateLabel();
+            statements.Add(Label(node.Syntax, bodyLabel));
+            statements.Add(node.Body);
+            if(GotoLabelExists(node.Body, node.ContinueLabel))
+                statements.Add(Label(node.Syntax, node.ContinueLabel));
+            statements.Add(GotoTrue(node.Syntax, bodyLabel, node.Condition));
+            if(GotoLabelExists(node.Body, node.BreakLabel))
+                statements.Add(Label(node.Syntax, node.BreakLabel));
+
             var result = Block(
                 node.Syntax,
-                Label(node.Syntax, bodyLabel),
-                node.Body,
-                Label(node.Syntax, node.ContinueLabel),
-                GotoTrue(node.Syntax, bodyLabel, node.Condition),
-                Label(node.Syntax, node.BreakLabel)
+                statements.ToArray()
             );
 
             return RewriteStatement(result);
+        }
+
+        private bool GotoLabelExists(BoundStatement body, BoundLabel breakLabel)
+        {
+            bool exists = false;
+
+            body.Visit((node) => {
+                if(node is BoundGotoStatement gt && gt.Label == breakLabel)
+                {
+                    exists = true;
+                }
+            });
+
+            return exists;
         }
 
         protected override BoundStatement RewriteForStatement(BoundForStatement node)

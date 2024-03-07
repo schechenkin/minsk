@@ -14,7 +14,7 @@ using Mono.Cecil.Rocks;
 
 namespace Minsk.CodeAnalysis.Emit
 {
-    internal sealed class Emitter
+    internal sealed class ILEmitter : IEmiiter
     {
         private DiagnosticBag _diagnostics = new DiagnosticBag();
 
@@ -45,7 +45,7 @@ namespace Minsk.CodeAnalysis.Emit
         private FieldDefinition? _randomFieldDefinition;
 
         // TOOD: This constructor does too much. Resolution should be factored out.
-        private Emitter(string moduleName, string[] references)
+        private ILEmitter(string moduleName, string[] references)
         {
             var assemblies = new List<AssemblyDefinition>();
 
@@ -70,12 +70,6 @@ namespace Minsk.CodeAnalysis.Emit
                 (TypeSymbol.String, "System.String"),
                 (TypeSymbol.Void, "System.Void"),
             };
-
-            int x = 1;
-            var t = x.GetType();
-            int[] xx = new int[2];
-            var tt = xx.GetType();
-
 
             var assemblyName = new AssemblyNameDefinition(moduleName, new Version(1, 0));
             _assemblyDefinition = AssemblyDefinition.CreateAssembly(assemblyName, moduleName, ModuleKind.Console);
@@ -192,7 +186,7 @@ namespace Minsk.CodeAnalysis.Emit
             if (program.Diagnostics.HasErrors())
                 return program.Diagnostics;
 
-            var emitter = new Emitter(moduleName, references);
+            var emitter = new ILEmitter(moduleName, references);
             return emitter.Emit(program, outputPath);
         }
 
@@ -751,7 +745,7 @@ namespace Minsk.CodeAnalysis.Emit
             {
                 ilProcessor.Emit(OpCodes.Call, _consoleReadLineReference);
             }
-            else if (node.Function == BuiltinFunctions.Print)
+            else if (node.Function == BuiltinFunctions.PrintString || node.Function == BuiltinFunctions.PrintInt)
             {
                 ilProcessor.Emit(OpCodes.Call, _consoleWriteLineReference);
             }

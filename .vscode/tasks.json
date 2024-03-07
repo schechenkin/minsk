@@ -191,6 +191,26 @@
                 "focus": true
             },
             "problemMatcher": []
+        },
+        {
+            "label": "Build executable",
+            "command": "gcc",
+            "type": "process",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/src/msc"
+            },
+            "args": [
+                "tmp/hello.s",
+                "minsklib.c",
+                "-o",
+                "a.out",
+                "-Og",
+                "-g"
+            ]
         }
     ],
     "inputs": [

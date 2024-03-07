@@ -522,7 +522,7 @@ namespace Minsk.CodeAnalysis.Syntax
         {
             var arrayKeywordToken = NextToken();
             var openParenthesisToken = NextToken();
-            var sizeExpression = ParseNumberLiteral();
+            var sizeExpression = ParseExpression();
             var closeParenthesisToken = NextToken();
 
             return new ArrayCreationExpressionSyntax(_syntaxTree, typeClause, arrayKeywordToken, openParenthesisToken, sizeExpression, closeParenthesisToken);

@@ -10,7 +10,7 @@ namespace Minsk.CodeAnalysis.Symbols
         }
 
         public abstract SymbolKind Kind { get; }
-        public string Name { get; }
+        public virtual string Name { get; }
 
         public void WriteTo(TextWriter writer)
         {

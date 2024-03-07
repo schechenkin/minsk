@@ -1,0 +1,1122 @@
+
+<html>
+<title>quicksort.c</title>
+<meta charset="utf-8" />
+<head>
+<link rel='stylesheet' type='text/css' href='style.css'>
+<script type="text/javascript">
+/* Simple helper to show/hide the expanded message of a remark. */
+function toggleExpandedMessage(e) {
+  var FullTextElems = e.parentElement.parentElement.getElementsByClassName("full-info");
+  if (!FullTextElems || FullTextElems.length < 1) {
+      return false;
+  }
+  var FullText = FullTextElems[0];
+  if (FullText.style.display == 'none') {
+    e.innerHTML = '-';
+    FullText.style.display = 'block';
+  } else {
+    e.innerHTML = '+';
+    FullText.style.display = 'none';
+  }
+}
+</script>
+</head>
+<body>
+<div class="centered">
+<table class="source">
+<thead>
+<tr>
+<th style="width: 2%">Line</td>
+<th style="width: 3%">Hotness</td>
+<th style="width: 10%">Optimization</td>
+<th style="width: 70%">Source</td>
+<th style="width: 15%">Inline Context</td>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td><a name="L1">1</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdbool.h&gt;</span><span class="cp"></span></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L2">2</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L3">3</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdlib.h&gt;</span><span class="cp"></span></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L4">4</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L5">5</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="k">extern</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">minsk_rand</span><span class="p">(</span><span class="kt">int</span><span class="p">);</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L6">6</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="k">extern</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">start_timer</span><span class="p">();</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L7">7</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="k">extern</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">stop_timer</span><span class="p">();</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L8">8</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="k">extern</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">fillArrayWithRandomNumbers</span><span class="p">(</span><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="o">*</span><span class="w"> </span><span class="n">numbers</span><span class="p">,</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">numbersCount</span><span class="p">);</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L9">9</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="kt">void</span><span class="w"> </span><span class="nf">printNumbers</span><span class="p">(</span><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="o">*</span><span class="w"> </span><span class="n">numbers</span><span class="p">,</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">numbersCount</span><span class="p">);</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L10">10</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L11">11</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="kt">void</span><span class="w"> </span><span class="nf">exch</span><span class="p">(</span><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="o">*</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">y</span><span class="p">)</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L12">12</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="p">{</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">prologepilog</td>
+<td><pre style="display:inline"></pre><span class="column-entry-yellow"> 0 stack bytes in function 'exch'&nbsp;</span></td>
+<td class="column-entry-yellow">exch</td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">asm-printer</td>
+<td><pre style="display:inline"></pre><span class="column-entry-yellow"> 5 instructions in function&nbsp;</span></td>
+<td class="column-entry-yellow">exch</td>
+</tr>
+
+<tr>
+<td><a name="L13">13</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">    </span><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">tmp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">a</span><span class="p">[</span><span class="n">x</span><span class="p">];</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">asm-printer</td>
+<td><pre style="display:inline">                    </pre><span class="column-entry-yellow"><a style="text-decoration: none;" href="" onclick="toggleExpandedMessage(this); return false;">+</a> BasicBlock: entry&nbsp;</span>
+<div class="full-info" style="display:none;">
+  <div class="col-left"><pre style="display:inline">                    </pre></div>
+  <div class="expanded col-left"><pre>: 5
+</pre></div>
+</div></td>
+<td class="column-entry-yellow">exch</td>
+</tr>
+
+<tr>
+<td><a name="L14">14</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">    </span><span class="n">a</span><span class="p">[</span><span class="n">x</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">a</span><span class="p">[</span><span class="n">y</span><span class="p">];</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-red">gvn</td>
+<td><pre style="display:inline">           </pre><span class="column-entry-yellow"> load of type i64 not eliminated in favor of <a href="quicksort.c.html#L22">load</a> because it is clobbered by <a href="quicksort.c.html#L15">store</a>&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L17">partition</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-red">licm</td>
+<td><pre style="display:inline">           </pre><span class="column-entry-yellow"> failed to move load with loop-invariant address because the loop may invalidate its value&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-red">gvn</td>
+<td><pre style="display:inline">           </pre><span class="column-entry-yellow"> load of type i64 not eliminated in favor of <a href="quicksort.c.html#L22">load</a> because it is clobbered by <a href="quicksort.c.html#L15">store</a>&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">asm-printer</td>
+<td><pre style="display:inline">         </pre><span class="column-entry-yellow"><a style="text-decoration: none;" href="" onclick="toggleExpandedMessage(this); return false;">+</a> BasicBlock: if.end12&nbsp;</span>
+<div class="full-info" style="display:none;">
+  <div class="col-left"><pre style="display:inline">         </pre></div>
+  <div class="expanded col-left"><pre>: 4
+</pre></div>
+</div></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L17">partition</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">asm-printer</td>
+<td><pre style="display:inline">           </pre><span class="column-entry-yellow"><a style="text-decoration: none;" href="" onclick="toggleExpandedMessage(this); return false;">+</a> BasicBlock: while.end13&nbsp;</span>
+<div class="full-info" style="display:none;">
+  <div class="col-left"><pre style="display:inline">           </pre></div>
+  <div class="expanded col-left"><pre>: 4
+</pre></div>
+</div></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L17">partition</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">asm-printer</td>
+<td><pre style="display:inline">           </pre><span class="column-entry-yellow"><a style="text-decoration: none;" href="" onclick="toggleExpandedMessage(this); return false;">+</a> BasicBlock: partition.exit&nbsp;</span>
+<div class="full-info" style="display:none;">
+  <div class="col-left"><pre style="display:inline">           </pre></div>
+  <div class="expanded col-left"><pre>: 10
+</pre></div>
+</div></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">asm-printer</td>
+<td><pre style="display:inline">         </pre><span class="column-entry-yellow"><a style="text-decoration: none;" href="" onclick="toggleExpandedMessage(this); return false;">+</a> BasicBlock: if.end12.i&nbsp;</span>
+<div class="full-info" style="display:none;">
+  <div class="col-left"><pre style="display:inline">         </pre></div>
+  <div class="expanded col-left"><pre>: 4
+</pre></div>
+</div></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td><a name="L15">15</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">    </span><span class="n">a</span><span class="p">[</span><span class="n">y</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tmp</span><span class="p">;</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L16">16</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="p">}</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L17">17</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L18">18</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="nf">partition</span><span class="p">(</span><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="o">*</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">l</span><span class="p">,</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">r</span><span class="p">)</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-red">regalloc</td>
+<td><pre style="display:inline"></pre><span class="column-entry-yellow"> 3 virtual registers copies 1.040000e+03 total copies cost generated in function&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L17">partition</a></td>
+</tr>
+
+<tr>
+<td><a name="L19">19</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="p">{</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">prologepilog</td>
+<td><pre style="display:inline"></pre><span class="column-entry-yellow"> 0 stack bytes in function 'partition'&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L17">partition</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">asm-printer</td>
+<td><pre style="display:inline"></pre><span class="column-entry-yellow"> 25 instructions in function&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L17">partition</a></td>
+</tr>
+
+<tr>
+<td><a name="L20">20</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">    </span><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">l</span><span class="mi">-1</span><span class="p">;</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">asm-printer</td>
+<td><pre style="display:inline">                   </pre><span class="column-entry-yellow"><a style="text-decoration: none;" href="" onclick="toggleExpandedMessage(this); return false;">+</a> BasicBlock: entry&nbsp;</span>
+<div class="full-info" style="display:none;">
+  <div class="col-left"><pre style="display:inline">                   </pre></div>
+  <div class="expanded col-left"><pre>: 4
+</pre></div>
+</div></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L17">partition</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">asm-printer</td>
+<td><pre style="display:inline">                   </pre><span class="column-entry-yellow"><a style="text-decoration: none;" href="" onclick="toggleExpandedMessage(this); return false;">+</a> BasicBlock: if.end&nbsp;</span>
+<div class="full-info" style="display:none;">
+  <div class="col-left"><pre style="display:inline">                   </pre></div>
+  <div class="expanded col-left"><pre>: 4
+</pre></div>
+</div></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td><a name="L21">21</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">    </span><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">r</span><span class="p">;</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L22">22</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">    </span><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">a</span><span class="p">[</span><span class="n">r</span><span class="p">];</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-green">licm</td>
+<td><pre style="display:inline">                  </pre><span class="column-entry-yellow"> hoisting <a href="quicksort.c.html#L22">getelementptr</a>&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-red">licm</td>
+<td><pre style="display:inline">                  </pre><span class="column-entry-yellow"> failed to move load with loop-invariant address because the loop may invalidate its value&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-red">gvn</td>
+<td><pre style="display:inline">                  </pre><span class="column-entry-yellow"> load of type i64 not eliminated in favor of <a href="quicksort.c.html#L15">store</a> because it is clobbered by <a href="quicksort.c.html#L46">call</a>&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td><a name="L23">23</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L24">24</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="nb">true</span><span class="p">)</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-red">regalloc</td>
+<td><pre style="display:inline">    </pre><span class="column-entry-yellow"> 2 virtual registers copies 1.039000e+03 total copies cost generated in loop&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L17">partition</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-red">regalloc</td>
+<td><pre style="display:inline">    </pre><span class="column-entry-yellow"> 2 virtual registers copies 1.662400e+04 total copies cost generated in loop&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td><a name="L25">25</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">    </span><span class="p">{</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L26">26</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">        </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="o">++</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">v</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">}</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-green">licm</td>
+<td><pre style="display:inline">               </pre><span class="column-entry-yellow"> sinking <a href="quicksort.c.html#L26">getelementptr</a>&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L17">partition</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-green">licm</td>
+<td><pre style="display:inline">               </pre><span class="column-entry-yellow"> sinking <a href="quicksort.c.html#L26">getelementptr</a>&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">loop-vectorize</td>
+<td><pre style="display:inline">        </pre><span class="column-entry-yellow"> loop not vectorized: could not determine number of loop iterations&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L17">partition</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-red">loop-vectorize</td>
+<td><pre style="display:inline">        </pre><span class="column-entry-yellow"> loop not vectorized&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L17">partition</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">loop-vectorize</td>
+<td><pre style="display:inline">        </pre><span class="column-entry-yellow"> loop not vectorized: could not determine number of loop iterations&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-red">loop-vectorize</td>
+<td><pre style="display:inline">        </pre><span class="column-entry-yellow"> loop not vectorized&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">asm-printer</td>
+<td><pre style="display:inline">               </pre><span class="column-entry-yellow"><a style="text-decoration: none;" href="" onclick="toggleExpandedMessage(this); return false;">+</a> BasicBlock: while.cond1&nbsp;</span>
+<div class="full-info" style="display:none;">
+  <div class="col-left"><pre style="display:inline">               </pre></div>
+  <div class="expanded col-left"><pre>: 4
+</pre></div>
+</div></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L17">partition</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">asm-printer</td>
+<td><pre style="display:inline">               </pre><span class="column-entry-yellow"><a style="text-decoration: none;" href="" onclick="toggleExpandedMessage(this); return false;">+</a> BasicBlock: while.cond1.i&nbsp;</span>
+<div class="full-info" style="display:none;">
+  <div class="col-left"><pre style="display:inline">               </pre></div>
+  <div class="expanded col-left"><pre>: 4
+</pre></div>
+</div></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td><a name="L27">27</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">        </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">v</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">a</span><span class="p">[</span><span class="o">--</span><span class="n">j</span><span class="p">])</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-green">licm</td>
+<td><pre style="display:inline">                   </pre><span class="column-entry-yellow"> sinking <a href="quicksort.c.html#L27">getelementptr</a>&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L17">partition</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-green">licm</td>
+<td><pre style="display:inline">                   </pre><span class="column-entry-yellow"> sinking <a href="quicksort.c.html#L27">getelementptr</a>&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">loop-vectorize</td>
+<td><pre style="display:inline">        </pre><span class="column-entry-yellow"> loop not vectorized: could not determine number of loop iterations&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L17">partition</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-red">loop-vectorize</td>
+<td><pre style="display:inline">        </pre><span class="column-entry-yellow"> loop not vectorized&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L17">partition</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-red">slp-vectorizer</td>
+<td><pre style="display:inline">                 </pre><span class="column-entry-yellow"> List vectorization was possible but not beneficial with cost 0 >= 0&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L17">partition</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">loop-vectorize</td>
+<td><pre style="display:inline">        </pre><span class="column-entry-yellow"> loop not vectorized: could not determine number of loop iterations&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-red">loop-vectorize</td>
+<td><pre style="display:inline">        </pre><span class="column-entry-yellow"> loop not vectorized&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-red">slp-vectorizer</td>
+<td><pre style="display:inline">                 </pre><span class="column-entry-yellow"> List vectorization was possible but not beneficial with cost 0 >= 0&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-red">regalloc</td>
+<td><pre style="display:inline">        </pre><span class="column-entry-yellow"> 1 virtual registers copies 1.008000e+03 total copies cost generated in loop&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L17">partition</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">asm-printer</td>
+<td><pre style="display:inline">                     </pre><span class="column-entry-yellow"><a style="text-decoration: none;" href="" onclick="toggleExpandedMessage(this); return false;">+</a> BasicBlock: while.cond4&nbsp;</span>
+<div class="full-info" style="display:none;">
+  <div class="col-left"><pre style="display:inline">                     </pre></div>
+  <div class="expanded col-left"><pre>: 4
+</pre></div>
+</div></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L17">partition</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">asm-printer</td>
+<td><pre style="display:inline">        </pre><span class="column-entry-yellow"><a style="text-decoration: none;" href="" onclick="toggleExpandedMessage(this); return false;">+</a> BasicBlock: while.cond4&nbsp;</span>
+<div class="full-info" style="display:none;">
+  <div class="col-left"><pre style="display:inline">        </pre></div>
+  <div class="expanded col-left"><pre>: 3
+</pre></div>
+</div></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L17">partition</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-red">regalloc</td>
+<td><pre style="display:inline">        </pre><span class="column-entry-yellow"> 1 virtual registers copies 1.612800e+04 total copies cost generated in loop&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">asm-printer</td>
+<td><pre style="display:inline">                     </pre><span class="column-entry-yellow"><a style="text-decoration: none;" href="" onclick="toggleExpandedMessage(this); return false;">+</a> BasicBlock: while.cond4.i&nbsp;</span>
+<div class="full-info" style="display:none;">
+  <div class="col-left"><pre style="display:inline">                     </pre></div>
+  <div class="expanded col-left"><pre>: 4
+</pre></div>
+</div></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">asm-printer</td>
+<td><pre style="display:inline">        </pre><span class="column-entry-yellow"><a style="text-decoration: none;" href="" onclick="toggleExpandedMessage(this); return false;">+</a> BasicBlock: while.cond4.i&nbsp;</span>
+<div class="full-info" style="display:none;">
+  <div class="col-left"><pre style="display:inline">        </pre></div>
+  <div class="expanded col-left"><pre>: 3
+</pre></div>
+</div></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td><a name="L28">28</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">        </span><span class="p">{</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L29">29</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">j</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">l</span><span class="p">)</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L30">30</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">                </span><span class="k">break</span><span class="p">;</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L31">31</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">        </span><span class="p">}</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L32">32</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">j</span><span class="p">)</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">asm-printer</td>
+<td><pre style="display:inline">              </pre><span class="column-entry-yellow"><a style="text-decoration: none;" href="" onclick="toggleExpandedMessage(this); return false;">+</a> BasicBlock: while.end9&nbsp;</span>
+<div class="full-info" style="display:none;">
+  <div class="col-left"><pre style="display:inline">              </pre></div>
+  <div class="expanded col-left"><pre>: 2
+</pre></div>
+</div></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L17">partition</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">asm-printer</td>
+<td><pre style="display:inline">              </pre><span class="column-entry-yellow"><a style="text-decoration: none;" href="" onclick="toggleExpandedMessage(this); return false;">+</a> BasicBlock: while.end9.i&nbsp;</span>
+<div class="full-info" style="display:none;">
+  <div class="col-left"><pre style="display:inline">              </pre></div>
+  <div class="expanded col-left"><pre>: 2
+</pre></div>
+</div></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td><a name="L33">33</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L34">34</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L35">35</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">        </span><span class="n">exch</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">);</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-green">inline</td>
+<td><pre style="display:inline">        </pre><span class="column-entry-yellow"> '<a href="quicksort.c.html#L12">exch</a>' inlined into 'partition' with (cost=-25, threshold=337) at callsite partition:17:9;&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L17">partition</a></td>
+</tr>
+
+<tr>
+<td><a name="L36">36</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">    </span><span class="p">}</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L37">37</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">    </span><span class="n">exch</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">r</span><span class="p">);</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-green">inline</td>
+<td><pre style="display:inline">    </pre><span class="column-entry-yellow"> '<a href="quicksort.c.html#L12">exch</a>' inlined into 'partition' with (cost=-25, threshold=337) at callsite partition:19:5;&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L17">partition</a></td>
+</tr>
+
+<tr>
+<td><a name="L38">38</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">i</span><span class="p">;</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L39">39</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="p">}</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L40">40</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L41">41</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="kt">void</span><span class="w"> </span><span class="nf">quicksort</span><span class="p">(</span><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="o">*</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">l</span><span class="p">,</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">r</span><span class="p">)</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-red">regalloc</td>
+<td><pre style="display:inline"></pre><span class="column-entry-yellow"> 7 virtual registers copies 1.667400e+04 total copies cost generated in function&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td><a name="L42">42</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="p">{</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">prologepilog</td>
+<td><pre style="display:inline"></pre><span class="column-entry-yellow"> 24 stack bytes in function 'quicksort'&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">asm-printer</td>
+<td><pre style="display:inline"></pre><span class="column-entry-yellow"> 43 instructions in function&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td><a name="L43">43</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">r</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">l</span><span class="p">)</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-green">TTI</td>
+<td><pre style="display:inline">        </pre><span class="column-entry-yellow"> advising against unrolling the loop because it contains a <a href="quicksort.c.html#L46">call</a>&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-red">regalloc</td>
+<td><pre style="display:inline">        </pre><span class="column-entry-yellow"> 5 virtual registers copies 1.667200e+04 total copies cost generated in loop&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">asm-printer</td>
+<td><pre style="display:inline">          </pre><span class="column-entry-yellow"><a style="text-decoration: none;" href="" onclick="toggleExpandedMessage(this); return false;">+</a> BasicBlock: entry&nbsp;</span>
+<div class="full-info" style="display:none;">
+  <div class="col-left"><pre style="display:inline">          </pre></div>
+  <div class="expanded col-left"><pre>: 2
+</pre></div>
+</div></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td><a name="L44">44</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">        </span><span class="k">return</span><span class="p">;</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L45">45</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">    </span><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">partition</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">l</span><span class="p">,</span><span class="w"> </span><span class="n">r</span><span class="p">);</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-green">inline</td>
+<td><pre style="display:inline">                  </pre><span class="column-entry-yellow"> '<a href="quicksort.c.html#L19">partition</a>' inlined into 'quicksort' with (cost=50, threshold=225) at callsite quicksort:4:19;&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td><a name="L46">46</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">    </span><span class="n">quicksort</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">l</span><span class="p">,</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-red">inline</td>
+<td><pre style="display:inline">    </pre><span class="column-entry-yellow"> '<a href="quicksort.c.html#L42">quicksort</a>' not inlined into 'quicksort' because it should never be inlined (cost=never): recursive&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td><a name="L47">47</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">    </span><span class="n">quicksort</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">r</span><span class="p">);</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-red">inline</td>
+<td><pre style="display:inline">    </pre><span class="column-entry-yellow"> '<a href="quicksort.c.html#L42">quicksort</a>' not inlined into 'quicksort' because it should never be inlined (cost=never): recursive&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-green">tailcallelim</td>
+<td><pre style="display:inline">    </pre><span class="column-entry-yellow"> transforming tail recursion into loop&nbsp;</span></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td><a name="L48">48</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="p">}</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">asm-printer</td>
+<td><pre style="display:inline"></pre><span class="column-entry-yellow"><a style="text-decoration: none;" href="" onclick="toggleExpandedMessage(this); return false;">+</a> BasicBlock: return&nbsp;</span>
+<div class="full-info" style="display:none;">
+  <div class="col-left"><pre style="display:inline"></pre></div>
+  <div class="expanded col-left"><pre>: 1
+</pre></div>
+</div></td>
+<td class="column-entry-yellow"><a href="quicksort.c.html#L40">quicksort</a></td>
+</tr>
+
+<tr>
+<td><a name="L49">49</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L50">50</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-red">regalloc</td>
+<td><pre style="display:inline"></pre><span class="column-entry-yellow"> 3 virtual registers copies 3.000000e+00 total copies cost generated in function&nbsp;</span></td>
+<td class="column-entry-yellow">main</td>
+</tr>
+
+<tr>
+<td><a name="L51">51</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="p">{</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">prologepilog</td>
+<td><pre style="display:inline"></pre><span class="column-entry-yellow"> 8 stack bytes in function 'main'&nbsp;</span></td>
+<td class="column-entry-yellow">main</td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">asm-printer</td>
+<td><pre style="display:inline"></pre><span class="column-entry-yellow"> 18 instructions in function&nbsp;</span></td>
+<td class="column-entry-yellow">main</td>
+</tr>
+
+<tr>
+<td><a name="L52">52</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">    </span><span class="kt">long</span><span class="w"> </span><span class="n">numbersCount</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10000000</span><span class="p">;</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L53">53</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">    </span><span class="c1">//printf(&quot;numbers count:\n&quot;);</span></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L54">54</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">    </span><span class="c1">//scanf(&quot;%ld&quot;, &amp;numbersCount);</span></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L55">55</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">    </span><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="o">*</span><span class="n">numbers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="o">*</span><span class="p">)</span><span class="n">malloc</span><span class="p">(</span><span class="n">numbersCount</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">long</span><span class="w"> </span><span class="kt">long</span><span class="p">));</span><span class="w"> </span></pre></div></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-red">inline</td>
+<td><pre style="display:inline">                                     </pre><span class="column-entry-yellow"> malloc will not be inlined into main because its definition is unavailable&nbsp;</span></td>
+<td class="column-entry-yellow">main</td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-white">asm-printer</td>
+<td><pre style="display:inline">                                     </pre><span class="column-entry-yellow"><a style="text-decoration: none;" href="" onclick="toggleExpandedMessage(this); return false;">+</a> BasicBlock: entry&nbsp;</span>
+<div class="full-info" style="display:none;">
+  <div class="col-left"><pre style="display:inline">                                     </pre></div>
+  <div class="expanded col-left"><pre>: 18
+</pre></div>
+</div></td>
+<td class="column-entry-yellow">main</td>
+</tr>
+
+<tr>
+<td><a name="L56">56</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">    </span><span class="n">fillArrayWithRandomNumbers</span><span class="p">(</span><span class="n">numbers</span><span class="p">,</span><span class="w"> </span><span class="n">numbersCount</span><span class="p">);</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-red">inline</td>
+<td><pre style="display:inline">    </pre><span class="column-entry-yellow"> fillArrayWithRandomNumbers will not be inlined into main because its definition is unavailable&nbsp;</span></td>
+<td class="column-entry-yellow">main</td>
+</tr>
+
+<tr>
+<td><a name="L57">57</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">    </span><span class="n">start_timer</span><span class="p">();</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-red">inline</td>
+<td><pre style="display:inline">    </pre><span class="column-entry-yellow"> start_timer will not be inlined into main because its definition is unavailable&nbsp;</span></td>
+<td class="column-entry-yellow">main</td>
+</tr>
+
+<tr>
+<td><a name="L58">58</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">    </span><span class="n">quicksort</span><span class="p">(</span><span class="n">numbers</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">numbersCount</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-red">inline</td>
+<td><pre style="display:inline">    </pre><span class="column-entry-yellow"> '<a href="quicksort.c.html#L42">quicksort</a>' not inlined into 'main' because it should never be inlined (cost=never): recursive&nbsp;</span></td>
+<td class="column-entry-yellow">main</td>
+</tr>
+
+<tr>
+<td><a name="L59">59</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">    </span><span class="n">stop_timer</span><span class="p">();</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td></td>
+<td></td>
+<td class="column-entry-red">inline</td>
+<td><pre style="display:inline">    </pre><span class="column-entry-yellow"> stop_timer will not be inlined into main because its definition is unavailable&nbsp;</span></td>
+<td class="column-entry-yellow">main</td>
+</tr>
+
+<tr>
+<td><a name="L60">60</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L61">61</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">    </span><span class="c1">//printNumbers(numbers, numbersCount);</span></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L62">62</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L63">63</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L64">64</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre><span class="p">}</span><span class="w"></span></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L65">65</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre></pre></div></td>
+</tr>
+
+<tr>
+<td><a name="L66">66</a></td>
+<td></td>
+<td></td>
+<td><div class="highlight"><pre></pre></div></td>
+</tr>
+
+</tbody>
+</table>
+</body>
+</html>

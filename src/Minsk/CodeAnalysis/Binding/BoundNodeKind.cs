@@ -29,5 +29,6 @@ namespace Minsk.CodeAnalysis.Binding
         ConversionExpression,
         ArrayCreationExpression,
         ArrayElementAccessExpression,
+        PhiExpression
     }
 }

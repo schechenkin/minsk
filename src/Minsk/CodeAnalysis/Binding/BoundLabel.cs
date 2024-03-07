@@ -1,6 +1,6 @@
 namespace Minsk.CodeAnalysis.Binding
 {
-    internal sealed class BoundLabel
+    internal sealed record class BoundLabel
     {
         internal BoundLabel(string name)
         {

@@ -14,6 +14,7 @@
       <MinskCompilerArgs>@(Compile->'"%(Identity)"', ' ')</MinskCompilerArgs>
       <MinskCompilerArgs>$(MinskCompilerArgs) /o "@(IntermediateAssembly)"</MinskCompilerArgs>
       <MinskCompilerArgs>$(MinskCompilerArgs) @(ReferencePath->'/r "%(Identity)"', ' ')</MinskCompilerArgs>
+      <MinskCompilerArgs>$(MinskCompilerArgs) /f "Native"</MinskCompilerArgs>
 
       <MinskScriptExt Condition="$([MSBuild]::IsOSUnixLike())">.sh</MinskScriptExt>
       <MinskScriptExt Condition="$([MSBuild]::IsOSPlatform('Windows'))">.cmd</MinskScriptExt>
