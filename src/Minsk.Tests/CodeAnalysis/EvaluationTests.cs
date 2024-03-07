@@ -106,6 +106,7 @@ namespace Minsk.Tests.CodeAnalysis
         [InlineData("enum Color { Black, White } { var color = Color.White return color }", "Color.White")]
         [InlineData("enum Color { Black, White } { var white = Color.White var black = Color.Black return white == black }", false)]
         [InlineData("enum Color { Black, White } { var color1 = Color.White var color2 = Color.White return color1 == color2 }", true)]
+        [InlineData("{ var a : int[] = array(5) a[2] = 42 return a[2] }", 42)]
         public void Evaluator_Computes_CorrectValues(string text, object expectedValue)
         {
             AssertValue(text, expectedValue);
@@ -723,6 +724,25 @@ namespace Minsk.Tests.CodeAnalysis
 
             var diagnostics = @"
                 Cannot convert type 'string' to 'int'. An explicit conversion exists (are you missing a cast?)
+            ";
+
+            AssertDiagnostics(text, diagnostics);
+        }
+
+        [Fact]
+        public void Evaluator_Wrong_Return_Type()
+        {
+            var text = @"
+                function test(n: int): bool
+                {
+                    return n > 10
+                }
+                var testValue: string = [test(3)]
+                testValue
+            ";
+
+            var diagnostics = @"
+                Cannot convert type 'bool' to 'string'. An explicit conversion exists (are you missing a cast?)
             ";
 
             AssertDiagnostics(text, diagnostics);

@@ -94,6 +94,8 @@ namespace Minsk.CodeAnalysis.Syntax
                     return SyntaxKind.WhileKeyword;
                 case "do":
                     return SyntaxKind.DoKeyword;
+                case "array":
+                    return SyntaxKind.Array;
                 default:
                     return SyntaxKind.IdentifierToken;
             }
@@ -181,6 +183,10 @@ namespace Minsk.CodeAnalysis.Syntax
                     return "{";
                 case SyntaxKind.CloseBraceToken:
                     return "}";
+                case SyntaxKind.OpenBracketToken:
+                    return "[";
+                case SyntaxKind.CloseBracketToken:
+                    return "]";
                 case SyntaxKind.ColonToken:
                     return ":";
                 case SyntaxKind.CommaToken:

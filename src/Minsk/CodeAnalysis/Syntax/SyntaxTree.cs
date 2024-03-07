@@ -123,7 +123,8 @@ namespace Minsk.CodeAnalysis.Syntax
         {
             foreach (var child in node.GetChildren())
             {
-                result.Add(child, node);
+                if(!result.ContainsKey(child))
+                    result.Add(child, node);
                 CreateParentsDictionary(result, child);
             }
         }

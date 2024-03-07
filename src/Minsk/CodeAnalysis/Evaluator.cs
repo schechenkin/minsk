@@ -139,6 +139,10 @@ namespace Minsk.CodeAnalysis
                     return EvaluateEnumMemberAccessExpression((BoundEnumMemberAccessExpression)node);
                 case BoundNodeKind.ConversionExpression:
                     return EvaluateConversionExpression((BoundConversionExpression)node);
+                case BoundNodeKind.ArrayCreationExpression:
+                    return EvaluateArrayCreationExpression((BoundArrayCreationExpression)node);
+                case BoundNodeKind.ArrayElementAccessExpression:
+                    return EvaluateArrayElementAccessExpression((BoundArrayElementAccessExpression)node);
                 default:
                     throw new Exception($"Unexpected node {node.Kind}");
             }
@@ -169,8 +173,42 @@ namespace Minsk.CodeAnalysis
             var value = EvaluateExpression(a.Expression);
             Debug.Assert(value != null);
 
-            Assign(a.Variable, value);
+            if(!a.Variable.Type.IsArray())
+                Assign(a.Variable, value);
+            else
+            {
+                Debug.Assert(a.ArrayElementIndexExpression != null);
+                var arrayElementIndex = (int)EvaluateExpression(a.ArrayElementIndexExpression);
+                Debug.Assert(arrayElementIndex != null);
+                AssignArrayValue(a.Variable, arrayElementIndex, value);
+            }
             return value;
+        }
+
+        private object? EvaluateArrayCreationExpression(BoundArrayCreationExpression a)
+        {
+            var arraySize = EvaluateExpression(a.SizeExpression);
+            Debug.Assert(arraySize != null);
+
+            return Array.CreateInstance(typeof(object), (int)arraySize);
+        }
+
+        private object? EvaluateArrayElementAccessExpression(BoundArrayElementAccessExpression a)
+        {
+            var index = (int)EvaluateExpression(a.ElementIndexExpression);
+
+            if (a.Variable.Kind == SymbolKind.GlobalVariable)
+            {
+                var arr = _globals[a.Variable] as object[];
+                return arr[index];
+            }
+            else
+            {
+                var locals = _locals.Peek();
+                var arr = locals[a.Variable] as object[];
+                return arr[index];
+            }
+
         }
 
         private object EvaluateUnaryExpression(BoundUnaryExpression u)
@@ -324,6 +362,21 @@ namespace Minsk.CodeAnalysis
             {
                 var locals = _locals.Peek();
                 locals[variable] = value;
+            }
+        }
+
+        private void AssignArrayValue(VariableSymbol variable, int arrayElementIndex, object value)
+        {
+            Debug.Assert(variable.Type.IsArray());
+
+            if (variable.Kind == SymbolKind.GlobalVariable)
+            {
+                (_globals[variable] as object[])[arrayElementIndex] = value;
+            }
+            else
+            {
+                var locals = _locals.Peek();
+                (locals[variable] as object[])[arrayElementIndex] = value;
             }
         }
     }

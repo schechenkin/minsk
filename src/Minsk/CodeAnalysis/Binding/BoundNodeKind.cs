@@ -27,5 +27,7 @@ namespace Minsk.CodeAnalysis.Binding
         CallExpression,
         EnumMemberAccessExpression,
         ConversionExpression,
+        ArrayCreationExpression,
+        ArrayElementAccessExpression,
     }
 }

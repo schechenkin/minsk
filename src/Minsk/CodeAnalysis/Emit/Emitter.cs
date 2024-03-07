@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Xml.Linq;
 using Minsk.CodeAnalysis.Binding;
 using Minsk.CodeAnalysis.Symbols;
 using Minsk.CodeAnalysis.Syntax;
@@ -70,6 +71,12 @@ namespace Minsk.CodeAnalysis.Emit
                 (TypeSymbol.Void, "System.Void"),
             };
 
+            int x = 1;
+            var t = x.GetType();
+            int[] xx = new int[2];
+            var tt = xx.GetType();
+
+
             var assemblyName = new AssemblyNameDefinition(moduleName, new Version(1, 0));
             _assemblyDefinition = AssemblyDefinition.CreateAssembly(assemblyName, moduleName, ModuleKind.Console);
             _knownTypes = new Dictionary<TypeSymbol, TypeReference>();
@@ -79,6 +86,8 @@ namespace Minsk.CodeAnalysis.Emit
                 var typeReference = ResolveType(typeSymbol.Name, metadataName);
                 _knownTypes.Add(typeSymbol, typeReference);
             }
+
+
 
             TypeReference ResolveType(string? minskName, string metadataName)
             {
@@ -307,13 +316,19 @@ namespace Minsk.CodeAnalysis.Emit
 
         private void EmitVariableDeclaration(ILProcessor ilProcessor, BoundVariableDeclaration node)
         {
-            var typeReference = _knownTypes[node.Variable.Type];
+            var typeReference = node.Variable.Type.IsArray() == false ? _knownTypes[node.Variable.Type] : CreateArrayTypeReference(node.Variable.Type.GetArrayElementType());
             var variableDefinition = new VariableDefinition(typeReference);
             _locals.Add(node.Variable, variableDefinition);
             ilProcessor.Body.Variables.Add(variableDefinition);
 
             EmitExpression(ilProcessor, node.Initializer);
             ilProcessor.Emit(OpCodes.Stloc, variableDefinition);
+        }
+
+        private TypeReference CreateArrayTypeReference(TypeSymbol typeSymbol)
+        {
+            var arrayType = _knownTypes[typeSymbol].MakeArrayType();
+            return _assemblyDefinition.MainModule.ImportReference(arrayType);
         }
 
         private void EmitLabelStatement(ILProcessor ilProcessor, BoundLabelStatement node)
@@ -383,9 +398,31 @@ namespace Minsk.CodeAnalysis.Emit
                 case BoundNodeKind.EnumMemberAccessExpression:
                     EmitEnumMemberAccessExpression(ilProcessor, (BoundEnumMemberAccessExpression)node);
                     break;
+                case BoundNodeKind.ArrayCreationExpression:
+                    EmitArrayCreationExpression(ilProcessor, (BoundArrayCreationExpression)node);
+                    break;
+                case BoundNodeKind.ArrayElementAccessExpression:
+                    EmitArrayElementAccessExpression(ilProcessor, (BoundArrayElementAccessExpression)node);
+                    break;
                 default:
                     throw new Exception($"Unexpected node kind {node.Kind}");
             }
+        }
+
+        private void EmitArrayCreationExpression(ILProcessor ilProcessor, BoundArrayCreationExpression node)
+        {
+            var variableDefinition = ilProcessor.Body.Variables.Last();
+            EmitExpression(ilProcessor, node.SizeExpression);
+            ilProcessor.Emit(OpCodes.Newarr, variableDefinition.VariableType.GetElementType());
+        }
+
+        private void EmitArrayElementAccessExpression(ILProcessor ilProcessor, BoundArrayElementAccessExpression node)
+        {
+            var variableDefinition = _locals[node.Variable];
+
+            ilProcessor.Emit(OpCodes.Ldloc, variableDefinition);
+            EmitExpression(ilProcessor, node.ElementIndexExpression);
+            ilProcessor.Emit(OpCodes.Ldelem_I4);
         }
 
         private void EmitConstantExpression(ILProcessor ilProcessor, BoundExpression node)
@@ -430,9 +467,21 @@ namespace Minsk.CodeAnalysis.Emit
         private void EmitAssignmentExpression(ILProcessor ilProcessor, BoundAssignmentExpression node)
         {
             var variableDefinition = _locals[node.Variable];
-            EmitExpression(ilProcessor, node.Expression);
-            ilProcessor.Emit(OpCodes.Dup);
-            ilProcessor.Emit(OpCodes.Stloc, variableDefinition);
+            if (node.Variable.Type.IsArray())
+            {
+                ilProcessor.Emit(OpCodes.Ldloc, variableDefinition);
+                EmitExpression(ilProcessor, node.ArrayElementIndexExpression!);
+                EmitExpression(ilProcessor, node.Expression);
+                ilProcessor.Emit(OpCodes.Stelem_I4);
+
+                ilProcessor.Emit(OpCodes.Ldc_I4_0);
+            }
+            else
+            {
+                EmitExpression(ilProcessor, node.Expression);
+                ilProcessor.Emit(OpCodes.Dup);
+                ilProcessor.Emit(OpCodes.Stloc, variableDefinition);
+            }
         }
 
         private void EmitEnumMemberAccessExpression(ILProcessor ilProcessor, BoundEnumMemberAccessExpression node)

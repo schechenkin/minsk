@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Minsk.CodeAnalysis.Lowering;
@@ -394,9 +395,15 @@ namespace Minsk.CodeAnalysis.Binding
 
             var type = LookupType(syntax.Identifier.Text);
             if (type == null)
+            {
                 _diagnostics.ReportUndefinedType(syntax.Identifier.Location, syntax.Identifier.Text);
+                return null;
+            }
 
-            return type;
+            if (!syntax.IsArray)
+                return type;
+            else
+                return TypeSymbol.ArrayOf(type);
         }
 
         private BoundStatement BindIfStatement(IfStatementSyntax syntax)
@@ -571,6 +578,10 @@ namespace Minsk.CodeAnalysis.Binding
                     return BindCallExpression((CallExpressionSyntax)syntax);
                 case SyntaxKind.EnumMemberAccessExpression:
                     return BindEnumMemberAccessExpression((EnumMemberAccessExpressionSyntax)syntax);
+                case SyntaxKind.ArrayCreationExpression:
+                    return BindArrayCreationExpression((ArrayCreationExpressionSyntax)syntax);
+                case SyntaxKind.ArrayElementAccessExpression:
+                    return BindArrayElementAccessExpressionSyntax((ArrayElementAccessExpressionSyntax)syntax);
                 default:
                     throw new Exception($"Unexpected syntax {syntax.Kind}");
             }
@@ -606,34 +617,78 @@ namespace Minsk.CodeAnalysis.Binding
 
         private BoundExpression BindAssignmentExpression(AssignmentExpressionSyntax syntax)
         {
-            var name = syntax.IdentifierToken.Text;
-            var boundExpression = BindExpression(syntax.Expression);
-
-            var variable = BindVariableReference(syntax.IdentifierToken);
-            if (variable == null)
-                return boundExpression;
-
-            if (variable.IsReadOnly)
-                _diagnostics.ReportCannotAssign(syntax.AssignmentToken.Location, name);
-
-            if (syntax.AssignmentToken.Kind != SyntaxKind.EqualsToken)
+            if(syntax.Left is NameExpressionSyntax)
             {
-                var equivalentOperatorTokenKind = SyntaxFacts.GetBinaryOperatorOfAssignmentOperator(syntax.AssignmentToken.Kind);
-                var boundOperator = BoundBinaryOperator.Bind(equivalentOperatorTokenKind, variable.Type, boundExpression.Type);
+                var left = syntax.Left as NameExpressionSyntax;
 
-                if (boundOperator == null)
+                var name = left!.IdentifierToken.Text;
+                var boundExpression = BindExpression(syntax.Right);
+
+                var variable = BindVariableReference(left.IdentifierToken);
+                if (variable == null)
+                    return boundExpression;
+
+                if (variable.IsReadOnly)
+                    _diagnostics.ReportCannotAssign(syntax.AssignmentToken.Location, name);
+
+                if (syntax.AssignmentToken.Kind != SyntaxKind.EqualsToken)
                 {
-                    _diagnostics.ReportUndefinedBinaryOperator(syntax.AssignmentToken.Location, syntax.AssignmentToken.Text, variable.Type, boundExpression.Type);
-                    return new BoundErrorExpression(syntax);
+                    var equivalentOperatorTokenKind = SyntaxFacts.GetBinaryOperatorOfAssignmentOperator(syntax.AssignmentToken.Kind);
+                    var boundOperator = BoundBinaryOperator.Bind(equivalentOperatorTokenKind, variable.Type, boundExpression.Type);
+
+                    if (boundOperator == null)
+                    {
+                        _diagnostics.ReportUndefinedBinaryOperator(syntax.AssignmentToken.Location, syntax.AssignmentToken.Text, variable.Type, boundExpression.Type);
+                        return new BoundErrorExpression(syntax);
+                    }
+
+                    var convertedExpression = BindConversion(syntax.Right.Location, boundExpression, variable.Type);
+                    return new BoundCompoundAssignmentExpression(syntax, variable, boundOperator, convertedExpression);
+                }
+                else
+                {
+                    var convertedExpression = BindConversion(syntax.Right.Location, boundExpression, variable.Type);
+                    return new BoundAssignmentExpression(syntax, variable, convertedExpression);
+                }
+            }
+            else if(syntax.Left is ArrayElementAccessExpressionSyntax)
+            {
+                var left = syntax.Left as ArrayElementAccessExpressionSyntax;
+                var name = left!.IdentifierToken.Text;
+
+                var boundExpression = BindExpression(syntax.Right);
+
+                var variable = BindVariableReference(left.IdentifierToken);
+                if (variable == null)
+                    return boundExpression;
+
+                if (variable.IsReadOnly)
+                    _diagnostics.ReportCannotAssign(syntax.AssignmentToken.Location, name);
+
+                if (syntax.AssignmentToken.Kind != SyntaxKind.EqualsToken)
+                {
+                    var equivalentOperatorTokenKind = SyntaxFacts.GetBinaryOperatorOfAssignmentOperator(syntax.AssignmentToken.Kind);
+                    var boundOperator = BoundBinaryOperator.Bind(equivalentOperatorTokenKind, variable.Type.GetArrayElementType(), boundExpression.Type);
+
+                    if (boundOperator == null)
+                    {
+                        _diagnostics.ReportUndefinedBinaryOperator(syntax.AssignmentToken.Location, syntax.AssignmentToken.Text, variable.Type.GetArrayElementType(), boundExpression.Type);
+                        return new BoundErrorExpression(syntax);
+                    }
+
+                    var convertedExpression = BindConversion(syntax.Right.Location, boundExpression, variable.Type.GetArrayElementType());
+                    return new BoundCompoundAssignmentExpression(syntax, variable, boundOperator, convertedExpression, BindExpression(left.ElementIndexExpression));
+                }
+                else
+                {
+                    var convertedExpression = BindConversion(syntax.Right.Location, boundExpression, variable.Type.GetArrayElementType());
+                    return new BoundAssignmentExpression(syntax, variable, convertedExpression, BindExpression(left.ElementIndexExpression));
                 }
 
-                var convertedExpression = BindConversion(syntax.Expression.Location, boundExpression, variable.Type);
-                return new BoundCompoundAssignmentExpression(syntax, variable, boundOperator, convertedExpression);
             }
             else
             {
-                var convertedExpression = BindConversion(syntax.Expression.Location, boundExpression, variable.Type);
-                return new BoundAssignmentExpression(syntax, variable, convertedExpression);
+                throw new Exception($"Unknown type if ExpressionSyntax {syntax.Left.GetType()}");
             }
         }
 
@@ -760,6 +815,21 @@ namespace Minsk.CodeAnalysis.Binding
             }
 
             return new BoundEnumMemberAccessExpression(syntax, enumSymbol, enumMemberSymbol);
+        }
+
+        private BoundExpression BindArrayCreationExpression(ArrayCreationExpressionSyntax syntax)
+        {
+            //TODO add checks
+
+            var arrayType = LookupType(syntax.TypeClause.Identifier.Text);
+            return new BoundArrayCreationExpression(syntax, arrayType, BindExpression(syntax.SizeExpression));
+        }
+
+        private BoundExpression BindArrayElementAccessExpressionSyntax(ArrayElementAccessExpressionSyntax syntax)
+        {
+            var variable = BindVariableReference(syntax.IdentifierToken);
+            //TODO add checks
+            return new BoundArrayElementAccessExpression(syntax, variable, BindExpression(syntax.ElementIndexExpression));
         }
 
         private BoundExpression BindConversion(ExpressionSyntax syntax, TypeSymbol type, bool allowExplicit = false)

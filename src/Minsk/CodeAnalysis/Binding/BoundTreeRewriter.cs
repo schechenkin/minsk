@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Immutable;
+using System.Linq.Expressions;
 
 namespace Minsk.CodeAnalysis.Binding
 {
@@ -184,6 +185,10 @@ namespace Minsk.CodeAnalysis.Binding
                     return RewriteEnumMemberAccessExpression((BoundEnumMemberAccessExpression)node);
                 case BoundNodeKind.ConversionExpression:
                     return RewriteConversionExpression((BoundConversionExpression)node);
+                case BoundNodeKind.ArrayCreationExpression:
+                    return RewriteArrayCreationExpression((BoundArrayCreationExpression)node);
+                case BoundNodeKind.ArrayElementAccessExpression:
+                    return RewriteArrayElementAccessExpression((BoundArrayElementAccessExpression)node);
                 default:
                     throw new Exception($"Unexpected node: {node.Kind}");
             }
@@ -211,6 +216,23 @@ namespace Minsk.CodeAnalysis.Binding
                 return node;
 
             return new BoundAssignmentExpression(node.Syntax, node.Variable, expression);
+        }
+        private BoundExpression RewriteArrayCreationExpression(BoundArrayCreationExpression node)
+        {
+            var sizeExpression = RewriteExpression(node.SizeExpression);
+            if (sizeExpression == node.SizeExpression)
+                return node;
+
+            return new BoundArrayCreationExpression(node.Syntax, node.ArrayElementType, sizeExpression);
+        }
+
+        private BoundExpression RewriteArrayElementAccessExpression(BoundArrayElementAccessExpression node)
+        {
+            var arrayElementIndexExpression = RewriteExpression(node.ElementIndexExpression);
+            if (arrayElementIndexExpression == node.ElementIndexExpression)
+                return node;
+
+            return new BoundArrayElementAccessExpression(node.Syntax, node.Variable, arrayElementIndexExpression);
         }
 
         protected virtual BoundExpression RewriteCompoundAssignmentExpression(BoundCompoundAssignmentExpression node)

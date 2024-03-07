@@ -17,4 +17,5 @@ namespace Minsk.CodeAnalysis.Syntax
         public SeparatedSyntaxList<ExpressionSyntax> Arguments { get; }
         public SyntaxToken CloseParenthesisToken { get; }
     }
+
 }

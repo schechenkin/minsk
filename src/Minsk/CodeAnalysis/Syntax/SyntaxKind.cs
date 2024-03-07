@@ -44,6 +44,8 @@ namespace Minsk.CodeAnalysis.Syntax
         CloseParenthesisToken,
         OpenBraceToken,
         CloseBraceToken,
+        OpenBracketToken,
+        CloseBracketToken,
         ColonToken,
         CommaToken,
         DotToken,
@@ -65,6 +67,7 @@ namespace Minsk.CodeAnalysis.Syntax
         VarKeyword,
         WhileKeyword,
         DoKeyword,
+        Array,
 
         // Nodes
         CompilationUnit,
@@ -97,6 +100,8 @@ namespace Minsk.CodeAnalysis.Syntax
         ParenthesizedExpression,
         AssignmentExpression,
         CallExpression,
-        EnumMemberAccessExpression
+        EnumMemberAccessExpression,
+        ArrayCreationExpression,
+        ArrayElementAccessExpression
     }
 }
